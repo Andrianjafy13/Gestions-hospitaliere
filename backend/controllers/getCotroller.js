@@ -26,19 +26,17 @@ export const getListePatients = async (req, res) => {
         {
           model: Chambre,
           as: "chambre",
-          attributes: ["id", "numero", "type"], // ✅ plus d'infos utiles
-          required: false,                       // LEFT JOIN — patients sans chambre inclus
+          attributes: ["id", "numero", "capacite"], 
+          required: false,                       
         },
         {
           model: User,
           as: "medecin",
-          attributes: ["id", "nom", "prenom"],  // ✅ infos médecin dans la réponse
+          attributes: ["id", "nom", "prenom"],  
         },
       ],
     });
 
-    // ✅ Retourner un tableau vide plutôt qu'une 404
-    // (404 casse les .map() côté frontend si non géré)
     return res.status(200).json(listePatients);
 
   } catch (error) {

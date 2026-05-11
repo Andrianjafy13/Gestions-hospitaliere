@@ -1,5 +1,6 @@
 // controllers/deleteController.js
 
+import Chambre from "../models/Chambre.js";
 import Consultations from "../models/Consultation.js";
 import Garde from "../models/Garde.js";
 import Medicaments from "../models/Medicament.js";

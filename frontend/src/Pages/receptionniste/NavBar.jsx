@@ -32,6 +32,8 @@ export default function NavBarRecep() {
 ========================= */
 
 function Sidebar() {
+  const [mobileOuvert, setMobileOuvert] = useState(false);
+  
   return (
     <aside className="hidden lg:flex w-64 flex-col bg-blue-900 text-gray-200 fixed inset-y-0 left-0 shadow-lg">
 
