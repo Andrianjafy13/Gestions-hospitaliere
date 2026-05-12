@@ -10,6 +10,38 @@ import Chambre from "../models/Chambre.js";
 import { Op } from "sequelize";
 import SuiviPatient from "../models/suiviPatient.js";
 
+export const getUserById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findByPk(id, {
+      attributes: [
+        "id",
+        "nom",
+        "prenom",
+        "photoProfil",
+        "role",
+      ],
+    });
+    
+
+    if (!user) {
+      return res.status(404).json({
+        message: "Utilisateur introuvable",
+      });
+    }
+
+    res.json(user);
+
+  } catch (error) {
+    console.error("Erreur getUserById :", error);
+
+    res.status(500).json({
+      message: "Erreur serveur",
+    });
+  }
+};
+
 export const getListePatients = async (req, res) => {
   try {
     const { medecinId } = req.params;
@@ -683,5 +715,63 @@ export const getCountMedicament = async (req, res) => {
   } catch (error) {
     console.error("Erreur getCountMedicament:", error);
     res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+
+
+// ── Stats KPIs ────────────────────────────────────────────
+export const getStatsReceptionniste = async (req, res) => {
+  try {
+    const [patients, valides, enAttente, annules] = await Promise.all([
+      Patients.count(),
+      RendezVous.count({ where: { statut: "Validé"     } }),
+      RendezVous.count({ where: { statut: "En attente" } }),
+      RendezVous.count({ where: { statut: "Annulé"     } }),
+    ]);
+
+    res.json({ patients, valides, enAttente, annules });
+    console.log(patients)
+  } catch (err) {
+    res.status(500).json({ message: "Erreur serveur", detail: err.message });
+  }
+};
+
+// ── Prochains RDV ─────────────────────────────────────────
+export const getProchainRdv = async (req, res) => {
+  try {
+    const aujourd_hui = new Date();
+    aujourd_hui.setHours(0, 0, 0, 0);
+
+    const rdvs = await RendezVous.findAll({
+      where: {
+        dateRendezVous: { [Op.gte]: aujourd_hui },
+        statut: { [Op.ne]: "Annulé" },
+      },
+      include: [
+        { model: Patients, as: "patients", attributes: ["nom", "prenom"] },
+        { model: User,     as: "medecin",  attributes: ["nom", "prenom"] },
+      ],
+      order: [["dateRendezVous", "ASC"], ["heureRendezVous", "ASC"]],
+      limit: 5,
+    });
+
+    res.json(rdvs);
+  } catch (err) {
+    res.status(500).json({ message: "Erreur serveur", detail: err.message });
+  }
+};
+
+export const getListePatientsReceptionniste = async (req, res) => {
+  try {
+    const patients = await Patients.findAll({
+      include: [
+        { model: User, as: "medecin", attributes: ["nom", "prenom"] },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+
+    res.json(patients);
+  } catch (err) {
+    res.status(500).json({ message: "Erreur serveur", detail: err.message });
   }
 };

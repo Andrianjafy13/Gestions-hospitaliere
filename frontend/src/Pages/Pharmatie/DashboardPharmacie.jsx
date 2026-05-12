@@ -193,7 +193,7 @@ export default function DashboardPharmacie() {
             { label: "Délivrer ordonnance", path: "/Pharmatie/delivranceOrdonance", color: "bg-blue-600 text-white hover:bg-blue-700"   },
             { label: "Ajouter médicament",  path: "/Pharmatie/Ajout-medicament",   color: "bg-green-600 text-white hover:bg-green-700" },
             { label: "Liste médicaments",   path: "/Pharmatie/ListeMedicament",           color: "bg-gray-100 text-gray-700 hover:bg-gray-200" },
-            { label: "Stock critique",      path: "/pharmatie/stock",                 color: "bg-red-50 text-red-700 hover:bg-red-100"    },
+           
           ].map(({ label, path, color }) => (
             <button key={label} onClick={() => navigate(path)}
               className={`text-sm px-4 py-2 rounded-lg font-medium transition ${color}`}>

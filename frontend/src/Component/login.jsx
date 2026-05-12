@@ -49,10 +49,12 @@ e.preventDefault();
 
             if (user.role === "receptionniste") {
             navigation("/Receptionniste/Dashboard");
+            localStorage.setItem("receptionnisteId", user.id);
             }
 
             if (user.role === "pharmacien") {
             navigation("/Pharmatie/Dashboard");
+            localStorage.setItem("pharmacienId", user.id);
             }
 
             if (user.role === "laboratoire") {

@@ -1,57 +1,57 @@
 import express from "express";
-import cors from "cors";
-import http from "http";
+import cors    from "cors";
+import http    from "http";
 import { Server } from "socket.io";
-import sequelize from "./config/database.js";
+import sequelize  from "./config/database.js";
 
-import authRoutes from "./routes/authRoutes.js";
-import insertRoutes from "./routes/insertRoutes.js";
-import routeGet from "./routes/routeGet.js";
-import routePut from "./routes/routePut.js";
-import routeDelete from "./routes/routeDelete.js";
+import authRoutes    from "./routes/authRoutes.js";
+import insertRoutes  from "./routes/insertRoutes.js";
+import routeGet      from "./routes/routeGet.js";
+import routePut      from "./routes/routePut.js";
+import routeDelete   from "./routes/routeDelete.js";
 import messageRoutes from "./routes/messageRoutes.js";
 
 import Message from "./models/Message.js";
+import path from "path";
 
 const app = express();
 
-/* Middleware */
+/* ── Middleware ── */
 app.use(cors());
 app.use(express.json());
 
-/* HTTP + SOCKET */
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+
+/* ── HTTP + SOCKET ── */
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin:  "http://localhost:5173",
     methods: ["GET", "POST"],
   },
 });
 
-/* ROUTES */
-app.use("/api/auth", authRoutes);
+/* ── Routes ── */
+app.use("/api/auth",      authRoutes);
 app.use("/api/insertion", insertRoutes);
-app.use("/api/GET", routeGet);
-app.use("/api/PUT", routePut);
-app.use("/api/DELETE", routeDelete);
-app.use("/api/message", messageRoutes);
+app.use("/api/GET",       routeGet);
+app.use("/api/PUT",       routePut);
+app.use("/api/DELETE",    routeDelete);
+app.use("/api/message",   messageRoutes);
 
-/* SOCKET USERS */
+/* ── Socket ── */
 const utilisateursConnectes = {};
 
-/* SOCKET */
-// ✅ Correction majeure — envoyer UNIQUEMENT au destinataire
 io.on("connection", (socket) => {
 
   socket.on("rejoindre", (userId) => {
-    // ✅ Chaque utilisateur rejoint SA room privée
-    socket.join(`user_${userId}`); // ✅ room privée par userId
+    socket.join(`user_${userId}`);
     utilisateursConnectes[userId] = socket.id;
     console.log(`User ${userId} connecté — room: user_${userId}`);
   });
 
-  // ✅ Modifier un message — diffuser à tous
+  // ✅ Modifier un message
   socket.on("modifier_message", async ({ messageId, contenu, expediteurId, conversationId }) => {
     try {
       const message = await Message.findByPk(messageId);
@@ -61,11 +61,10 @@ io.on("connection", (socket) => {
       message.modifie = true;
       await message.save();
 
-      // Diffuser la modification à tous les participants
       io.to(conversationId).emit("message_modifie", {
         messageId,
-        contenu:  message.contenu,
-        modifie:  true,
+        contenu:   message.contenu,
+        modifie:   true,
         updatedAt: message.updatedAt,
       });
     } catch (err) {
@@ -73,7 +72,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // ✅ Supprimer un message — diffuser à tous
+  // ✅ Supprimer un message
   socket.on("supprimer_message", async ({ messageId, expediteurId, conversationId }) => {
     try {
       const message = await Message.findByPk(messageId);
@@ -89,34 +88,29 @@ io.on("connection", (socket) => {
     }
   });
 
-
+  // ✅ Envoyer un message
   socket.on("envoyerMessage", async ({ expediteurId, destinataireId, contenu }) => {
     try {
       if (!expediteurId || !destinataireId || !contenu?.trim()) return;
 
-      // ✅ Sauvegarder en base
       const message = await Message.create({
         expediteurId,
         destinataireId,
         contenu: contenu.trim(),
-        lu: false,
+        lu:      false,
       });
 
       const messageComplet = {
-        id:            message.id,
-        contenu:       message.contenu,
-        expediteurId:  parseInt(expediteurId),
+        id:             message.id,
+        contenu:        message.contenu,
+        expediteurId:   parseInt(expediteurId),
         destinataireId: parseInt(destinataireId),
-        createdAt:     message.createdAt,
-        lu:            false,
+        createdAt:      message.createdAt,
+        lu:             false,
       };
 
-      // ✅ Envoyer UNIQUEMENT dans la room privée du destinataire
-      // Personne d'autre ne reçoit ce message
-      io.to(`user_${destinataireId}`).emit("nouveauMessage", messageComplet);
-
-      // ✅ Confirmer à l'expéditeur dans SA room
-      io.to(`user_${expediteurId}`).emit("messageEnvoye", messageComplet);
+      io.to(`user_${destinataireId}`).emit("nouveauMessage",  messageComplet);
+      io.to(`user_${expediteurId}`).emit("messageEnvoye",     messageComplet);
 
     } catch (error) {
       console.error("Erreur socket envoyerMessage:", error);
@@ -125,25 +119,29 @@ io.on("connection", (socket) => {
   });
 
   socket.on("enTrainDEcrire", ({ expediteurId, destinataireId }) => {
-    // ✅ Envoyer uniquement au destinataire concerné
     io.to(`user_${destinataireId}`).emit("utilisateurEcrit", { expediteurId });
   });
 
   socket.on("disconnect", () => {
     const userId = Object.keys(utilisateursConnectes)
       .find(id => utilisateursConnectes[id] === socket.id);
-    if (userId) {
-      delete utilisateursConnectes[userId];
-    }
+    if (userId) delete utilisateursConnectes[userId];
   });
 });
 
-/* DATABASE */
-sequelize.sync() // ❌ PAS alter:true
-  .then(() => console.log("✅ DB synchronisée"))
-  .catch(console.error);
+/* ── Base de données + démarrage serveur ── */
+// ✅ Correction — await seul OU .then() seul, pas les deux mélangés
+try {
+  // ✅ alter: true — ajoute les colonnes manquantes (receptionnisteId etc.)
+  // sans supprimer les données existantes
+  await sequelize.sync({ alter: true });
+  console.log("✅ Base de données synchronisée");
 
-/* SERVER */
-server.listen(5000, () => {
-  console.log("🚀 Server sur http://localhost:5000");
-});
+  server.listen(5000, () => {
+    console.log("🚀 Serveur démarré sur http://localhost:5000");
+  });
+
+} catch (error) {
+  console.error("❌ Erreur démarrage serveur :", error);
+  process.exit(1);
+}

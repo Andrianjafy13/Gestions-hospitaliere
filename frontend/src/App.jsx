@@ -45,6 +45,7 @@ import { AjoutSuivi }           from "./Pages/Infirmerie/SuiviPatient";
 import AlertesMedicamentsPage   from "./Pages/Pharmatie/AlertesMedicamentsPage";
 import PharmacieChart           from "./Pages/Pharmatie/PharmacieChart";
 import { FenetreChat }          from "./Pages/ComponentsMessage/FenetreChat";
+import ListePatientRecep from "./Pages/receptionniste/ListePatientsRecep";
 
 
 export default function App() {
@@ -170,6 +171,9 @@ export default function App() {
 
       <Route path="/Receptionniste/CréerPatient" element={
         <ReceptionLayout><CreatePatients /></ReceptionLayout>
+      }/>
+      <Route path="/Receptionniste/ListePatients" element={
+        <ReceptionLayout><ListePatientRecep /></ReceptionLayout>
       }/>
 
       <Route path="/Receptionniste/modifier/rendezVous/:id" element={

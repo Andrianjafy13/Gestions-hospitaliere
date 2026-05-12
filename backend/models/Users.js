@@ -33,7 +33,12 @@ const User = sequelize.define("User", {
       "accuiel"
     ),
     allowNull: false
-  }
+  },
+  photoProfil: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    defaultValue: null,
+  },
 });
 
 export default User;
