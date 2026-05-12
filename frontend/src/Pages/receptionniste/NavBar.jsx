@@ -1,7 +1,6 @@
 import {
   LayoutDashboard, ClipboardList, Settings,
-  Share, Users, UserRoundPen,
-  Menu, X, ChevronRight, ChevronDown,
+  Share, Users, Menu, X, ChevronRight, ChevronDown,
 } from "lucide-react";
 
 import { Link, useLocation } from "react-router-dom";
@@ -9,6 +8,8 @@ import hospitalIcon from "../../assets/icons.png";
 import { useState, useEffect } from "react";
 import { ChatIcon } from "../ComponentsMessage/ChatIcon";
 import { AvatarProfil } from "../profit/AvatarProfil";
+import { useProfil }    from "../hook/useProfil";
+
 
 export default function NavBarRecep() {
   return (
@@ -19,14 +20,49 @@ export default function NavBarRecep() {
   );
 }
 
+
+function Topbar() {
+  // ✅ Hook qui charge le profil depuis le backend au montage
+  const { profil, mettreAJourPhoto } = useProfil();
+
+  return (
+    <header className="sticky top-0 z-20 bg-white/90 backdrop-blur-md
+      border-b border-slate-100 h-16 flex items-center justify-between
+      px-6 lg:ml-64 shadow-sm pl-16 lg:pl-6">
+
+      <h1 className="text-lg font-semibold text-gray-700 truncate">
+        Tableau de bord Réceptionniste
+      </h1>
+
+      <div className="flex items-center gap-4 flex-shrink-0">
+
+        {/* Nom affiché */}
+        <div className="hidden sm:flex flex-col items-end">
+          <span className="text-sm font-medium text-gray-700">
+            {profil.prenom} {profil.nom}
+          </span>
+          <span className="text-xs text-gray-400 capitalize">
+            {profil.role}
+          </span>
+        </div>
+
+        {/* ✅ Avatar interactif — photo depuis BDD */}
+        <AvatarProfil
+          profil={profil.photoProfil}
+          onPhotoMiseAJour={mettreAJourPhoto}
+        />
+
+        <ChatIcon route="/Receptionniste/Message" />
+      </div>
+    </header>
+  );
+}
 function Sidebar() {
   const [mobileOuvert, setMobileOuvert] = useState(false);
   const location = useLocation();
 
-  // Fermer à chaque changement de route
   useEffect(() => { setMobileOuvert(false); }, [location.pathname]);
 
-  // Bloquer scroll body
   useEffect(() => {
     document.body.style.overflow = mobileOuvert ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
@@ -35,7 +71,6 @@ function Sidebar() {
   const contenuSidebar = (
     <div className="flex flex-col h-full bg-blue-900 text-gray-200">
 
-      {/* Logo + bouton fermer */}
       <div className="flex items-center justify-between px-5 h-16
         border-b border-slate-700 flex-shrink-0">
         <div className="flex items-center gap-3">
@@ -55,9 +90,7 @@ function Sidebar() {
         </button>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-1">
-
         <Link to="/Receptionniste/Dashboard"
           onClick={() => setMobileOuvert(false)}>
           <MenuItem icon={<LayoutDashboard size={18} />} label="Dashboard"
@@ -89,26 +122,22 @@ function Sidebar() {
 
   return (
     <>
-      {/* Desktop */}
       <aside className="hidden lg:flex w-64 flex-col fixed inset-y-0
         left-0 shadow-lg z-30">
         {contenuSidebar}
       </aside>
 
-      {/* Overlay mobile */}
       {mobileOuvert && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={() => setMobileOuvert(false)} />
       )}
 
-      {/* Drawer mobile */}
       <aside className={`fixed inset-y-0 left-0 w-72 z-50 shadow-2xl
         transform transition-transform duration-300 ease-in-out lg:hidden
         ${mobileOuvert ? "translate-x-0" : "-translate-x-full"}`}>
         {contenuSidebar}
       </aside>
 
-      {/* Bouton hamburger */}
       <button onClick={() => setMobileOuvert(true)}
         className="fixed top-4 left-4 z-30 lg:hidden bg-blue-900 text-white
           p-2 rounded-xl shadow-lg hover:bg-blue-800 transition-colors"
@@ -116,68 +145,6 @@ function Sidebar() {
         <Menu size={20} />
       </button>
     </>
-  );
-}
-
-function Topbar() {
-  const userId      = localStorage.getItem("receptionnisteId")
-                   || localStorage.getItem("userId");
-  const [photo, setPhoto] = useState(
-    localStorage.getItem("photoProfil") || null
-  );
-  const [prenom, setPrenom] = useState("U");
-
-   // ✅ Charger données utilisateur
-   useEffect(() => {
-
-    if (!userId) return;
-
-    fetch(`http://localhost:5000/api/GET/${userId}`)
-      .then((res) => res.json())
-      .then((data) => {
-
-        setPhoto(data.photoProfil || null);
-
-        setPrenom(data.prenom || "U");
-
-        // ✅ sauvegarde locale
-        localStorage.setItem(
-          "photoProfil",
-          data.photoProfil || ""
-        );
-
-        localStorage.setItem(
-          "userPrenom",
-          data.prenom || ""
-        );
-
-      })
-      .catch((err) => {
-        console.error("Erreur chargement profil :", err);
-      });
-
-  }, [userId]);
-  return (
-    <header className="sticky top-0 z-20 bg-white/90 backdrop-blur-md
-      border-b border-slate-100 h-16 flex items-center justify-between
-      px-6 lg:ml-64 shadow-sm pl-16 lg:pl-6">
-      <h1 className="text-lg font-semibold text-gray-700 truncate">
-        Tableau de bord Réceptionniste
-      </h1>
-      <div className="flex items-center gap-4 flex-shrink-0">
-        <span className="text-sm text-gray-600 hidden sm:block">Réceptionniste</span>
-        <div className="w-9 h-9 rounded-full bg-teal-500 text-white
-          flex items-center justify-center">
-          <AvatarProfil
-          userId={userId}
-          photoInitiale={photo}
-          prenom={prenom}
-          onPhotoMiseAJour={(nouvelleUrl) => setPhoto(nouvelleUrl)}
-        />
-        </div>
-        <ChatIcon route="/Receptionniste/Message" />
-      </div>
-    </header>
   );
 }
 
@@ -250,7 +217,7 @@ function PatientMenu({ active, onNavigate }) {
           rounded-xl cursor-pointer transition-all duration-200
           ${active ? "bg-slate-700 text-white" : "text-gray-300 hover:bg-slate-800"}`}>
         <div className="flex items-center gap-3">
-        {<Users size={18} />}
+          <Users size={18} />
           <span className="text-sm">Patients</span>
         </div>
         {open ? <ChevronDown size={15} /> : <ChevronRight size={15} />}

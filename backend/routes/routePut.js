@@ -2,7 +2,7 @@ import express from "express";
 import { marquerDelivree, marquerVusPharmacien } from "../controllers/getCotroller.js";
 import { libererChambre, modifierConsultation, modifierGarde, modifierMedicament, modifierPatient, modifierRendezVous, updateStatutRendezVous } from "../controllers/UpdateController.js";
 import { marquerVus } from "../controllers/codeController.js";
-import { updatePhotoProfil, upload } from "../controllers/profilController.js";
+import { getProfil, updatePhotoProfil, upload } from "../controllers/profilController.js";
 
 const router = express.Router();
 
@@ -21,5 +21,6 @@ router.put(
     upload.single("photo"),  
     updatePhotoProfil
   );
+  router.get("/profil/:userId",        getProfil);
 
 export default router;

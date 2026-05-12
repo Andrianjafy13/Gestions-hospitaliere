@@ -1,12 +1,10 @@
-import User from "../models/Users.js";
+import User   from "../models/Users.js";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import jwt    from "jsonwebtoken";
 
-// code pour l'inscription
+// ── Inscription ──────────────────────────────────────────
 export const register = async (req, res) => {
-
   try {
-
     const { nom, prenom, email, password, role } = req.body;
 
     if (!nom || !prenom || !email || !password || !role) {
@@ -15,95 +13,72 @@ export const register = async (req, res) => {
       });
     }
 
-    const existUser = await User.findOne({
-      where: { email }
-    });
-
+    const existUser = await User.findOne({ where: { email } });
     if (existUser) {
-      return res.status(400).json({
-        message: "Cet email existe déjà"
-      });
+      return res.status(400).json({ message: "Cet email existe déjà" });
     }
 
     const hash = await bcrypt.hash(password, 10);
 
-    const user = await User.create({
-      nom,
-      prenom,
-      email,
-      password: hash,
-      role
-    });
+    const user = await User.create({ nom, prenom, email, password: hash, role });
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "Utilisateur bien inscrit",
-      user
+      user: {
+        id:     user.id,
+        nom:    user.nom,
+        prenom: user.prenom,
+        email:  user.email,
+        role:   user.role,
+      }
     });
 
   } catch (error) {
-
-    console.error(error);   // IMPORTANT pour voir l'erreur
-
-    res.status(500).json({
-      message: "Erreur serveur"
-    });
-
+    console.error("register :", error);
+    return res.status(500).json({ message: "Erreur serveur" });
   }
 };
 
-
+// ── Connexion ────────────────────────────────────────────
 export const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
 
-    try {
-
-      const { email, password } = req.body;
-
-      const user = await User.findOne({
-        where: { email }
-      });
-
-      if (!user) {
-        return res.status(404).json({
-        message: "Utilisateur non trouvé"
-      });
-      }
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      return res.status(404).json({ message: "Utilisateur non trouvé" });
+    }
 
     const validPassword = await bcrypt.compare(password, user.password);
-
     if (!validPassword) {
-      return res.status(401).json({
-      message: "Mot de passe incorrect"
-      });
+      return res.status(401).json({ message: "Mot de passe incorrect" });
     }
 
     const token = jwt.sign(
-    {
-      id: user.id,
-      role: user.role
-    },
+      { id: user.id, role: user.role },
       "SECRET_KEY",
       { expiresIn: "1d" }
     );
 
-    res.json({
+    // ✅ Construire l'URL complète de la photo si elle existe
+    const photoUrl = user.photoProfil
+      ? `${req.protocol}://${req.get("host")}${user.photoProfil}`
+      : null;
+
+    return res.json({
       message: "Connexion réussie",
       token,
       user: {
-      id: user.id,
-      name: user.name,
-      prenom: user.prenom,
-      role: user.role
+        id:          user.id,
+        nom:         user.nom,        // ✅ corrigé
+        prenom:      user.prenom,
+        role:        user.role,
+        photoProfil: photoUrl,        // ✅ ajouté
       }
     });
 
-    } catch (error) {
-
-      console.log(error); // important pour debug
-
-      res.status(500).json({
-      message: "Erreur serveur"
-    });
-
-    }
-
+  } catch (error) {
+    console.error("login :", error);
+    return res.status(500).json({ message: "Erreur serveur" });
+  }
 };

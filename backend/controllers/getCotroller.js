@@ -10,37 +10,6 @@ import Chambre from "../models/Chambre.js";
 import { Op } from "sequelize";
 import SuiviPatient from "../models/suiviPatient.js";
 
-export const getUserById = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const user = await User.findByPk(id, {
-      attributes: [
-        "id",
-        "nom",
-        "prenom",
-        "photoProfil",
-        "role",
-      ],
-    });
-    
-
-    if (!user) {
-      return res.status(404).json({
-        message: "Utilisateur introuvable",
-      });
-    }
-
-    res.json(user);
-
-  } catch (error) {
-    console.error("Erreur getUserById :", error);
-
-    res.status(500).json({
-      message: "Erreur serveur",
-    });
-  }
-};
 
 export const getListePatients = async (req, res) => {
   try {

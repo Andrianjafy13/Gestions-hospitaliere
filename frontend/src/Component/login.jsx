@@ -36,7 +36,7 @@ e.preventDefault();
             localStorage.setItem("role", user.role);
             localStorage.setItem("medecinId", user.id);
             localStorage.setItem("medecinPrenom", user.prenom);
-
+            localStorage.setItem("photoProfil",      data.user.photoProfil || "");
             console.log("Connexion réussie :", user.role);
 
             if (user.role === "medecin") {
