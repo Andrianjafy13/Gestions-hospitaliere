@@ -142,7 +142,7 @@ export default function HistoriqueMedical() {
 
   // ── Chargement données ─────────────────────────────────────────────
   useEffect(() => {
-    const medecinId = localStorage.getItem("medecinId");
+    const medecinId = localStorage.getItem("medecinId") || localStorage.getItem("userId");
     setLoading(true);
 
     fetch(`http://localhost:5000/api/GET/AllConsultations/${medecinId}`)

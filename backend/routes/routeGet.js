@@ -1,6 +1,7 @@
 import express from "express";
-import { getChambresDisponibles, getChartData, getConsultations, getCountMedicament, getGardes, getInfirmerie, getListePatients, getListePatientsReceptionniste, getListeRendezVous, getMedecin, getMedicaments, getNonVusPharmacien, getOrdonnancesPharmacien, getPatientHospitalise, getPatients, getPatientsHospitalises, getProchainRdv, getRendezVousMedecin, getStats, getStatsMensuelles, getStatsReceptionniste, getSuivisPatient } from "../controllers/getCotroller.js";
+import { getChambresDisponibles, getChartData, getCommandesRecentes, getCommandesRecentess, getConsultations, getCountMedicament, getGardes, getInfirmerie, getListePatients, getListePatientsReceptionniste, getListeRendezVous, getMedecin, getMedicaments, getNonVusPharmacien, getOrdonnancesPharmacien, getPatientHospitalise, getPatients, getPatientsHospitalises, getProchainRdv, getRendezVousMedecin, getStats, getStatsMensuelles, getStatsOrdonnances, getStatsOrdonnancess, getStatsReceptionniste, getSuivisPatient } from "../controllers/getCotroller.js";
 import { getNonVus, marquerVus } from "../controllers/codeController.js";
+import { getProfil } from "../controllers/profilController.js";
 
 const router = express.Router();
 router.get("/Liste_patients/:medecinId", getListePatients);
@@ -23,9 +24,12 @@ router.get("/hospitalise", getPatientHospitalise)
 router.get("/AllHospitalise", getPatientsHospitalises)
 router.get("/suivi/:patientId", getSuivisPatient)
 router.get("/totalMedicament", getCountMedicament);
-
+router.get("/pharmacie/stats-ordonnances",  getStatsOrdonnancess);
+router.get("/pharmacie/commandes-recentes", getCommandesRecentess);
 router.get("/receptionniste/stats/:receptionnisteId",       getStatsReceptionniste);
 router.get("/receptionniste/prochains-rdv", getProchainRdv);
 router.get("/receptionniste/patients/:receptionnisteId", getListePatientsReceptionniste);
+router.get("/profil/:userId",        getProfil);
+
 
 export default router;

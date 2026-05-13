@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FaEdit, FaTrash } from "react-icons/fa";
+import { FaTrash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { ModalConfirmation } from "../confirmationSup/ModalConfirmation";
 
@@ -10,11 +10,16 @@ export default function ConsultationTable() {
   const [loading,        setLoading]        = useState(true);
   const [itemASupprimer, setItemASupprimer] = useState(null);
 
-  // ✅ chargerConsultations défini dans le composant
   const chargerConsultations = () => {
     setLoading(true);
-    const medecinId = localStorage.getItem("medecinId");
-    if (!medecinId) { setMessage("Veuillez vous reconnecter !"); return; }
+
+    // ✅ Fallback userId si medecinId absent
+    const medecinId = localStorage.getItem("medecinId") || localStorage.getItem("userId");
+    if (!medecinId) {
+      setMessage("Veuillez vous reconnecter !");
+      setLoading(false);
+      return;
+    }
 
     fetch(`http://localhost:5000/api/GET/AllConsultations/${medecinId}`)
       .then(res => res.json())
@@ -27,10 +32,6 @@ export default function ConsultationTable() {
   };
 
   useEffect(() => { chargerConsultations(); }, []);
-
-  const handleModifier = (consult) => {
-    navigate(`/modifier/consultation/${consult.id}`, { state: { data: consult } });
-  };
 
   const handleSupprimer = async () => {
     if (!itemASupprimer) return;
@@ -84,12 +85,9 @@ export default function ConsultationTable() {
                     <td className="px-3 py-2 text-sm text-gray-700">
                       {new Date(consult.dateConsultation).toLocaleDateString("fr-FR")}
                     </td>
-                    <td className="px-3 py-2 text-sm text-center space-x-2">
-                      {/* <button onClick={() => handleModifier(consult)}
-                        className="p-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600">
-                        <FaEdit />
-                      </button> */}
-                      <button onClick={() => setItemASupprimer(consult)}
+                    <td className="px-3 py-2 text-sm text-center">
+                      <button
+                        onClick={() => setItemASupprimer(consult)}
                         className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
                         <FaTrash />
                       </button>
@@ -108,7 +106,6 @@ export default function ConsultationTable() {
         </div>
       )}
 
-      {/* ✅ Modal EN DEHORS du tableau */}
       <ModalConfirmation
         item={itemASupprimer}
         nomAffiche={

@@ -35,28 +35,30 @@ export const getProfil = async (req, res) => {
     const { userId } = req.params;
 
     const user = await User.findByPk(userId, {
-      attributes: ["id", "nom", "prenom", "email", "role", "photoProfil"],
+      attributes: [
+        "id", "nom", "prenom", "email", "role",
+        "photoProfil", // ✅ doit exister dans le modèle
+      ],
     });
 
     if (!user) {
       return res.status(404).json({ message: "Utilisateur introuvable." });
     }
 
-    // ✅ Construire l'URL complète de la photo
-    const profil = {
+    return res.status(200).json({
       id:          user.id,
       nom:         user.nom,
       prenom:      user.prenom,
       email:       user.email,
       role:        user.role,
+      // ✅ Construire l'URL complète ou null
       photoProfil: user.photoProfil
         ? `http://localhost:5000${user.photoProfil}`
         : null,
-    };
-    console.log(photoProfil)
-    return res.status(200).json(profil);
-    
+    });
+
   } catch (err) {
+    console.error("getProfil:", err.message);
     return res.status(500).json({ message: "Erreur serveur.", detail: err.message });
   }
 };

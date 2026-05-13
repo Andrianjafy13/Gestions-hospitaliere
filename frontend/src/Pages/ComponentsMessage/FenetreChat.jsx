@@ -16,7 +16,8 @@ function labelContact(u) {
 export function FenetreChat() {
   const navigate = useNavigate();
 
-  const userId = localStorage.getItem("medecinId");
+  // ✅ Clé unique — corrige le bug principal
+  const userId = localStorage.getItem("userId");
   const moi    = parseInt(userId);
 
   const [contacts,         setContacts]         = useState([]);
@@ -25,15 +26,13 @@ export function FenetreChat() {
   const [texte,            setTexte]            = useState("");
   const [ecrit,            setEcrit]            = useState(false);
   const [recherche,        setRecherche]        = useState("");
-
-  // ✅ États pour modification et suppression
-  const [enEdition,    setEnEdition]    = useState(null); // { id, contenu }
-  const [messageHover, setMessageHover] = useState(null); // id du message survolé
+  const [enEdition,        setEnEdition]        = useState(null);
+  const [messageHover,     setMessageHover]     = useState(null);
 
   const { socket, envoyerMessage } = useSocket();
   const finMessages                = useRef(null);
 
-  // ── Charger contacts ────────────────────────────────────────────────
+  // ✅ Charger contacts — exclut soi-même côté backend
   useEffect(() => {
     if (!userId) return;
     fetch(`http://localhost:5000/api/message/utilisateurs/${userId}`)
@@ -42,17 +41,17 @@ export function FenetreChat() {
       .catch(console.error);
   }, [userId]);
 
-  // ── Charger historique ──────────────────────────────────────────────
+  // ✅ Charger historique — seulement entre moi et conversationAvec
   useEffect(() => {
     if (!conversationAvec || !userId) return;
     setMessages([]);
-
     fetch(`http://localhost:5000/api/message/conversation/${userId}/${conversationAvec.id}`)
       .then(r => r.json())
       .then(d => {
         if (!Array.isArray(d)) return;
+        // Double sécurité frontend
         const filtres = d.filter(m =>
-          (m.expediteurId === moi   && m.destinataireId === conversationAvec.id) ||
+          (m.expediteurId === moi && m.destinataireId === conversationAvec.id) ||
           (m.expediteurId === conversationAvec.id && m.destinataireId === moi)
         );
         setMessages(filtres);
@@ -60,12 +59,14 @@ export function FenetreChat() {
       .catch(console.error);
   }, [conversationAvec?.id, userId]);
 
-  // ── Socket ──────────────────────────────────────────────────────────
+  // ✅ Socket — tous les handlers
   useEffect(() => {
     if (!socket) return;
 
     const handleNouveauMessage = (msg) => {
+      // Ignorer si pas pour moi
       if (msg.destinataireId !== moi) return;
+      // Afficher seulement si je suis dans cette conversation
       if (conversationAvec && msg.expediteurId === conversationAvec.id) {
         setMessages(prev => {
           if (prev.some(m => m.id === msg.id)) return prev;
@@ -75,6 +76,7 @@ export function FenetreChat() {
     };
 
     const handleMessageEnvoye = (msg) => {
+      // Ignorer si pas de moi
       if (msg.expediteurId !== moi) return;
       if (conversationAvec && msg.destinataireId === conversationAvec.id) {
         setMessages(prev => {
@@ -91,14 +93,12 @@ export function FenetreChat() {
       }
     };
 
-    // ✅ Réception modification en temps réel
     const handleMessageModifie = ({ messageId, contenu, modifie }) => {
       setMessages(prev => prev.map(m =>
         m.id === messageId ? { ...m, contenu, modifie } : m
       ));
     };
 
-    // ✅ Réception suppression en temps réel
     const handleMessageSupprime = ({ messageId }) => {
       setMessages(prev => prev.map(m =>
         m.id === messageId
@@ -107,22 +107,21 @@ export function FenetreChat() {
       ));
     };
 
-    socket.on("nouveauMessage",    handleNouveauMessage);
-    socket.on("messageEnvoye",     handleMessageEnvoye);
-    socket.on("utilisateurEcrit",  handleEcrit);
-    socket.on("message_modifie",   handleMessageModifie);   // ✅
-    socket.on("message_supprime",  handleMessageSupprime);  // ✅
+    socket.on("nouveauMessage",   handleNouveauMessage);
+    socket.on("messageEnvoye",    handleMessageEnvoye);
+    socket.on("utilisateurEcrit", handleEcrit);
+    socket.on("message_modifie",  handleMessageModifie);
+    socket.on("message_supprime", handleMessageSupprime);
 
     return () => {
-      socket.off("nouveauMessage",    handleNouveauMessage);
-      socket.off("messageEnvoye",     handleMessageEnvoye);
-      socket.off("utilisateurEcrit",  handleEcrit);
-      socket.off("message_modifie",   handleMessageModifie);
-      socket.off("message_supprime",  handleMessageSupprime);
+      socket.off("nouveauMessage",   handleNouveauMessage);
+      socket.off("messageEnvoye",    handleMessageEnvoye);
+      socket.off("utilisateurEcrit", handleEcrit);
+      socket.off("message_modifie",  handleMessageModifie);
+      socket.off("message_supprime", handleMessageSupprime);
     };
   }, [socket, conversationAvec?.id, moi]);
 
-  // Scroll automatique
   useEffect(() => {
     finMessages.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -142,18 +141,13 @@ export function FenetreChat() {
     });
   };
 
-  // ✅ Confirmer la modification
   const confirmerModification = () => {
     if (!enEdition || !enEdition.contenu.trim()) return;
-
     socket.emit("modifier_message", {
-      messageId:      enEdition.id,
-      contenu:        enEdition.contenu.trim(),
-      expediteurId:   moi,
-      conversationId: `${moi}_${conversationAvec.id}`,
+      messageId:    enEdition.id,
+      contenu:      enEdition.contenu.trim(),
+      expediteurId: moi,
     });
-
-    // ✅ Mise à jour optimiste locale immédiate
     setMessages(prev => prev.map(m =>
       m.id === enEdition.id
         ? { ...m, contenu: enEdition.contenu.trim(), modifie: true }
@@ -162,15 +156,11 @@ export function FenetreChat() {
     setEnEdition(null);
   };
 
-  // ✅ Supprimer un message
-  const supprimerMessage = (messageId) => {
+  const supprimerMsg = (messageId) => {
     socket.emit("supprimer_message", {
       messageId,
-      expediteurId:   moi,
-      conversationId: `${moi}_${conversationAvec.id}`,
+      expediteurId: moi,
     });
-
-    // ✅ Mise à jour optimiste locale immédiate
     setMessages(prev => prev.map(m =>
       m.id === messageId
         ? { ...m, contenu: "Ce message a été supprimé.", supprime: true }
@@ -187,12 +177,11 @@ export function FenetreChat() {
   return (
     <div className="h-screen flex bg-gray-100 overflow-hidden">
 
-      {/* ── PANEL GAUCHE — contacts (inchangé) ── */}
+      {/* PANEL GAUCHE */}
       <div className="w-72 bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
 
         <div className="bg-teal-700 px-4 py-4 flex items-center gap-3">
-          <button
-            onClick={() => navigate(-1)}
+          <button onClick={() => navigate(-1)}
             className="text-teal-200 hover:text-white transition-colors">
             <ArrowLeft size={18} />
           </button>
@@ -224,7 +213,7 @@ export function FenetreChat() {
           {contactsFiltres.map(u => (
             <button
               key={`${u.role}-${u.id}`}
-              onClick={() => setConversationAvec(u)}
+              onClick={() => { setConversationAvec(u); setMessages([]); }}
               className={`w-full flex items-center gap-3 px-4 py-3
                 border-b border-gray-100 text-left transition-colors
                 ${conversationAvec?.id === u.id
@@ -247,10 +236,9 @@ export function FenetreChat() {
         </div>
       </div>
 
-      {/* ── PANEL DROIT — messages ── */}
+      {/* PANEL DROIT */}
       <div className="flex-1 flex flex-col min-w-0">
 
-        {/* En-tête conversation (inchangé) */}
         <div className="bg-white border-b border-gray-200 px-6 py-4
           flex items-center gap-3 shadow-sm">
           {conversationAvec ? (
@@ -266,19 +254,14 @@ export function FenetreChat() {
                 <p className="font-semibold text-gray-800 text-sm">
                   {labelContact(conversationAvec)}
                 </p>
-                {ecrit ? (
-                  <p className="text-xs text-teal-500">en train d'écrire...</p>
-                ) : (
-                  <p className="text-xs text-gray-400 capitalize">
-                    {conversationAvec.role}
-                  </p>
-                )}
+                {ecrit
+                  ? <p className="text-xs text-teal-500">en train d'écrire...</p>
+                  : <p className="text-xs text-gray-400 capitalize">{conversationAvec.role}</p>
+                }
               </div>
             </>
           ) : (
-            <p className="text-gray-400 text-sm">
-              Sélectionnez un contact pour commencer
-            </p>
+            <p className="text-gray-400 text-sm">Sélectionnez un contact pour commencer</p>
           )}
         </div>
 
@@ -298,7 +281,7 @@ export function FenetreChat() {
           )}
 
           {messages.map((m, i) => {
-            const estMoi   = m.expediteurId === moi;
+            const estMoi  = m.expediteurId === moi;
             const supprime = m.supprime;
             const enCours  = enEdition?.id === m.id;
 
@@ -309,7 +292,6 @@ export function FenetreChat() {
                 onMouseEnter={() => estMoi && !supprime && setMessageHover(m.id)}
                 onMouseLeave={() => setMessageHover(null)}
               >
-                {/* Avatar contact (inchangé) */}
                 {!estMoi && (
                   <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center
                     justify-center flex-shrink-0 mr-2 self-end mb-1">
@@ -319,7 +301,7 @@ export function FenetreChat() {
                   </div>
                 )}
 
-                {/* ✅ Icônes modifier/supprimer — au survol, uniquement mes messages */}
+                {/* Boutons modifier/supprimer au survol */}
                 {estMoi && !supprime && !enCours && messageHover === m.id && (
                   <div className="flex items-center gap-1 mr-2 self-center">
                     <button
@@ -327,62 +309,51 @@ export function FenetreChat() {
                       className="p-1 rounded-full bg-white border border-gray-200
                         hover:bg-teal-50 hover:border-teal-300
                         text-gray-400 hover:text-teal-600 transition-colors shadow-sm"
-                      title="Modifier"
-                    >
+                      title="Modifier">
                       <Pencil size={12} />
                     </button>
                     <button
-                      onClick={() => supprimerMessage(m.id)}
+                      onClick={() => supprimerMsg(m.id)}
                       className="p-1 rounded-full bg-white border border-gray-200
                         hover:bg-red-50 hover:border-red-300
                         text-gray-400 hover:text-red-500 transition-colors shadow-sm"
-                      title="Supprimer"
-                    >
+                      title="Supprimer">
                       <Trash2 size={12} />
                     </button>
                   </div>
                 )}
 
-                {/* Bulle message — style original conservé */}
                 <div className={`max-w-[60%] px-4 py-2.5 rounded-2xl text-sm
                   break-words shadow-sm
                   ${supprime
-                    ? "bg-gray-100 text-gray-400 italic border border-gray-200 rounded-br-none"
+                    ? "bg-gray-100 text-gray-400 italic border border-gray-200"
                     : estMoi
                       ? "bg-teal-600 text-white rounded-br-none"
                       : "bg-white text-gray-800 rounded-bl-none border border-gray-100"
                   }`}>
 
-                  {/* ✅ Mode édition — input inline dans la bulle */}
                   {enCours ? (
                     <div className="flex flex-col gap-2">
                       <input
                         autoFocus
                         value={enEdition.contenu}
-                        onChange={e =>
-                          setEnEdition(prev => ({ ...prev, contenu: e.target.value }))
-                        }
+                        onChange={e => setEnEdition(prev => ({ ...prev, contenu: e.target.value }))}
                         onKeyDown={e => {
                           if (e.key === "Enter")  confirmerModification();
                           if (e.key === "Escape") setEnEdition(null);
                         }}
-                        className="bg-teal-500 text-white placeholder-teal-200
-                          border-b border-teal-300 outline-none text-sm w-full"
+                        className="bg-teal-500 text-white border-b border-teal-300
+                          outline-none text-sm w-full"
                       />
-                      {/* Boutons confirmer / annuler */}
                       <div className="flex gap-2 justify-end">
-                        <button
-                          onClick={() => setEnEdition(null)}
+                        <button onClick={() => setEnEdition(null)}
                           className="text-teal-200 hover:text-white transition-colors"
-                          title="Annuler"
-                        >
+                          title="Annuler">
                           <X size={14} />
                         </button>
-                        <button
-                          onClick={confirmerModification}
+                        <button onClick={confirmerModification}
                           className="text-teal-200 hover:text-white transition-colors"
-                          title="Enregistrer"
-                        >
+                          title="Enregistrer">
                           <Check size={14} />
                         </button>
                       </div>
@@ -391,7 +362,6 @@ export function FenetreChat() {
                     <p>{m.contenu}</p>
                   )}
 
-                  {/* Timestamp + mention Modifié (inchangé sauf ajout "· Modifié") */}
                   {!enCours && (
                     <p className={`text-xs mt-1 text-right flex items-center
                       justify-end gap-1
@@ -399,15 +369,11 @@ export function FenetreChat() {
                       {new Date(m.createdAt).toLocaleTimeString("fr-FR", {
                         hour: "2-digit", minute: "2-digit",
                       })}
-                      {/* ✅ Mention modifié */}
-                      {m.modifie && !supprime && (
-                        <span className="italic">· Modifié</span>
-                      )}
+                      {m.modifie && !supprime && <span className="italic">· Modifié</span>}
                     </p>
                   )}
                 </div>
 
-                {/* Avatar moi (inchangé) */}
                 {estMoi && (
                   <div className="w-7 h-7 rounded-full bg-teal-600 flex items-center
                     justify-center flex-shrink-0 ml-2 self-end mb-1">
@@ -420,7 +386,6 @@ export function FenetreChat() {
           <div ref={finMessages} />
         </div>
 
-        {/* Zone saisie (inchangée) */}
         {conversationAvec && (
           <div className="bg-white border-t border-gray-200 px-6 py-4 flex gap-3">
             <input

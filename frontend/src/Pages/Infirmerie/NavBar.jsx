@@ -8,6 +8,8 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import hospitalIcon from "../../assets/icons.png";
 import { ChatIcon } from "../ComponentsMessage/ChatIcon";
+import { useProfil } from "../hook/useProfil";
+import { AvatarProfil } from "../profit/AvatarProfil";
 
 export default function NavBarInf() {
   return (
@@ -119,6 +121,7 @@ function Sidebar() {
 }
 
 function Topbar() {
+  const { profil, mettreAJourPhoto } = useProfil();
   return (
     <header className="sticky top-0 z-20 bg-white/90 backdrop-blur-md
       border-b border-slate-100 h-16 flex items-center justify-between
@@ -127,15 +130,18 @@ function Topbar() {
         Tableau de bord Infirmerie
       </h1>
       <div className="flex items-center gap-4 flex-shrink-0">
-        <span className="text-sm text-gray-600 hidden sm:block">Infirmerie</span>
-        <div className="w-9 h-9 rounded-full bg-teal-500 text-white
-          flex items-center justify-center">
-          <UserRoundPen size={18} />
-        </div>
-        <div className="w-9 h-9 rounded-full bg-teal-500 text-white
-          flex items-center justify-center">
+      <span className="text-sm font-medium text-gray-700">
+            {profil.prenom} {profil.nom}
+          </span>
+          <span className="text-xs text-gray-400 capitalize">
+            {profil.role}
+          </span>
+          <AvatarProfil
+          key={profil.photoProfil || "avatar"}
+          profil={profil}
+          onPhotoMiseAJour={mettreAJourPhoto}
+        />
           <ChatIcon route="/infirmier/Message" />
-        </div>
       </div>
     </header>
   );

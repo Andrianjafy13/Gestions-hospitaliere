@@ -9,6 +9,8 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import hospitalIcon from "../../assets/icons.png";
 import { useNotifPharmacie } from "./hooks/useNotifPharmacie";
 import { ChatIcon } from "../ComponentsMessage/ChatIcon";
+import { useProfil } from "../hook/useProfil";
+import { AvatarProfil } from "../profit/AvatarProfil";
 
 export default function NavBarPharm() {
   return (
@@ -141,6 +143,7 @@ function Sidebar() {
 }
 
 function Topbar() {
+  const { profil, mettreAJourPhoto } = useProfil();
   return (
     <header className="relative overflow-visible sticky top-0 z-20
       bg-white/90 backdrop-blur-md border-b border-slate-100 h-16
@@ -149,11 +152,17 @@ function Topbar() {
         Tableau de bord Pharmacie
       </h1>
       <div className="flex items-center gap-4 flex-shrink-0">
-        <span className="text-sm text-gray-600 hidden sm:block">Pharmacie</span>
-        <div className="w-9 h-9 rounded-full bg-teal-500 text-white
-          flex items-center justify-center">
-          <UserRoundPen size={18} />
-        </div>
+        <span className="text-sm text-gray-600 hidden sm:block">
+          {profil.prenom} {profil.nom}
+        </span>
+        <span className="text-xs text-gray-400 capitalize">
+            {profil.role}
+        </span>
+        <AvatarProfil
+          key={profil.photoProfil || "avatar"}
+          profil={profil}
+          onPhotoMiseAJour={mettreAJourPhoto}
+        />
         <ChatIcon route="/pharmatie/Message" />
       </div>
     </header>

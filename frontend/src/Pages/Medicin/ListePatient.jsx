@@ -5,16 +5,19 @@ import { useNavigate } from "react-router-dom";
 
 export default function PatientTable() {
   const navigate = useNavigate();
-
   const [patients,       setPatients]       = useState([]);
   const [message,        setMessage]        = useState("");
   const [loading,        setLoading]        = useState(true);
   const [itemASupprimer, setItemASupprimer] = useState(null);
 
-  // ✅ défini avant tout appel
   const chargerPatients = () => {
-    const medecinId = localStorage.getItem("medecinId");
-    if (!medecinId) { setMessage("Veuillez vous reconnecter !"); return; }
+    // ✅ Fallback userId si medecinId absent
+    const medecinId = localStorage.getItem("medecinId") || localStorage.getItem("userId");
+    if (!medecinId) {
+      setMessage("Veuillez vous reconnecter !");
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     fetch(`http://localhost:5000/api/GET/Liste_patients/${medecinId}`)
       .then(res => res.json())
@@ -28,12 +31,10 @@ export default function PatientTable() {
 
   useEffect(() => { chargerPatients(); }, []);
 
-  // ✅ Modifier — naviguer avec les données
   const handleModifier = (patient) => {
     navigate(`/modifier/patient/${patient.id}`, { state: { data: patient } });
   };
 
-  // ✅ Supprimer — appel API puis recharger
   const handleSupprimer = async () => {
     if (!itemASupprimer) return;
     try {
@@ -91,12 +92,14 @@ export default function PatientTable() {
                     <td className="px-3 py-2 text-sm text-gray-700">{patient.groupeSanguin || "—"}</td>
                     <td className="px-3 py-2 text-sm text-gray-700">{patient.chambre?.numero || "—"}</td>
                     <td className="px-3 py-2 text-sm text-center space-x-2">
-                      <button onClick={() => handleModifier(patient)}
+                      <button
+                        onClick={() => handleModifier(patient)}
                         className="p-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600"
                         title="Modifier">
                         <FaEdit />
                       </button>
-                      <button onClick={() => setItemASupprimer(patient)}
+                      <button
+                        onClick={() => setItemASupprimer(patient)}
                         className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
                         title="Supprimer">
                         <FaTrash />
@@ -106,7 +109,7 @@ export default function PatientTable() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="8" className="text-center text-gray-400 text-sm py-8">
+                  <td colSpan="9" className="text-center text-gray-400 text-sm py-8">
                     Aucun patient trouvé
                   </td>
                 </tr>
@@ -116,7 +119,6 @@ export default function PatientTable() {
         </div>
       )}
 
-      {/* ✅ Modal EN DEHORS du tableau */}
       <ModalConfirmation
         item={itemASupprimer}
         nomAffiche={itemASupprimer ? `${itemASupprimer.prenom} ${itemASupprimer.nom}` : ""}

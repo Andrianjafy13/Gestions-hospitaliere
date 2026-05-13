@@ -744,3 +744,269 @@ export const getListePatientsReceptionniste = async (req, res) => {
     res.status(500).json({ message: "Erreur serveur", detail: err.message });
   }
 };
+
+// Ajouter dans getController.js
+
+// ✅ Stats ordonnances par mois (12 derniers mois)
+export const getStatsOrdonnancess = async (req, res) => {
+  try {
+    const moisLabels = ["Jan","Fév","Mar","Avr","Mai","Juin",
+                        "Juil","Août","Sep","Oct","Nov","Déc"];
+
+    const maintenant  = new Date();
+    const anneeActuelle = maintenant.getFullYear();
+
+    // ✅ 12 derniers mois depuis aujourd'hui
+    const debut12Mois = new Date();
+    debut12Mois.setMonth(debut12Mois.getMonth() - 11);
+    debut12Mois.setDate(1);
+    debut12Mois.setHours(0, 0, 0, 0);
+
+    // ✅ Ordonnances traitées par mois (vu = true = délivrée)
+    const ordonnancesParMois = await Notification.findAll({
+      attributes: [
+        [Sequelize.fn("MONTH",  Sequelize.col("createdAt")), "mois"],
+        [Sequelize.fn("YEAR",   Sequelize.col("createdAt")), "annee"],
+        [Sequelize.fn("COUNT",  Sequelize.col("id")),        "total"],
+      ],
+      where: {
+        destinataire: "pharmacie",
+        type:         "ordonnance",
+        createdAt:    { [Op.gte]: debut12Mois },
+      },
+      group: ["annee", "mois"],
+      order: [
+        [Sequelize.fn("YEAR",  Sequelize.col("createdAt")), "ASC"],
+        [Sequelize.fn("MONTH", Sequelize.col("createdAt")), "ASC"],
+      ],
+      raw: true,
+    });
+
+    // ✅ Ordonnances délivrées par mois (vu = true)
+    const delivreesParMois = await Notification.findAll({
+      attributes: [
+        [Sequelize.fn("MONTH",  Sequelize.col("createdAt")), "mois"],
+        [Sequelize.fn("YEAR",   Sequelize.col("createdAt")), "annee"],
+        [Sequelize.fn("COUNT",  Sequelize.col("id")),        "total"],
+      ],
+      where: {
+        destinataire: "pharmacie",
+        type:         "ordonnance",
+        vu:           true,
+        createdAt:    { [Op.gte]: debut12Mois },
+      },
+      group: ["annee", "mois"],
+      order: [
+        [Sequelize.fn("YEAR",  Sequelize.col("createdAt")), "ASC"],
+        [Sequelize.fn("MONTH", Sequelize.col("createdAt")), "ASC"],
+      ],
+      raw: true,
+    });
+
+    // ✅ Construire les 12 derniers mois avec labels
+    const labels   = [];
+    const totales  = [];
+    const deliv    = [];
+
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      const m = d.getMonth() + 1; // 1-12
+      const a = d.getFullYear();
+
+      labels.unshift(`${moisLabels[d.getMonth()]} ${a}`);
+
+      const found  = ordonnancesParMois.find(r => parseInt(r.mois) === m && parseInt(r.annee) === a);
+      const foundD = delivreesParMois.find(r   => parseInt(r.mois) === m && parseInt(r.annee) === a);
+
+      totales.unshift(found  ? parseInt(found.total)  : 0);
+      deliv.unshift(foundD   ? parseInt(foundD.total) : 0);
+    }
+
+    // ✅ Total général
+    const totalOrdonnances  = await Notification.count({
+      where: { destinataire: "pharmacie", type: "ordonnance" },
+    });
+    const totalDelivrees    = await Notification.count({
+      where: { destinataire: "pharmacie", type: "ordonnance", vu: true },
+    });
+    const totalEnAttente    = totalOrdonnances - totalDelivrees;
+
+    res.json({
+      labels,
+      ordonnances: totales,
+      delivrees:   deliv,
+      stats: {
+        totalOrdonnances,
+        totalDelivrees,
+        totalEnAttente,
+      },
+    });
+
+  } catch (error) {
+    console.error("Erreur getStatsOrdonnances:", error);
+    res.status(500).json({ message: "Erreur serveur", detail: error.message });
+  }
+};
+
+// ✅ Commandes récentes (ordonnances triées par date décroissante)
+export const getCommandesRecentess = async (req, res) => {
+  try {
+    const { limit = 10, mois, annee } = req.query;
+
+    const where = {
+      destinataire: "pharmacie",
+      type:         "ordonnance",
+    };
+
+    // ✅ Filtre par mois/année si fourni
+    if (mois && annee) {
+      const debut = new Date(parseInt(annee), parseInt(mois) - 1, 1);
+      const fin   = new Date(parseInt(annee), parseInt(mois),     1);
+      where.createdAt = { [Op.gte]: debut, [Op.lt]: fin };
+    }
+
+    const commandes = await Notification.findAll({
+      where,
+      order: [["createdAt", "DESC"]], // ✅ plus récente en premier
+      limit: parseInt(limit),
+    });
+
+    res.json(commandes);
+  } catch (error) {
+    console.error("Erreur getCommandesRecentes:", error);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+};// Ajouter dans getController.js
+
+// ✅ Stats ordonnances par mois (12 derniers mois)
+export const getStatsOrdonnances = async (req, res) => {
+  try {
+    const moisLabels = ["Jan","Fév","Mar","Avr","Mai","Juin",
+                        "Juil","Août","Sep","Oct","Nov","Déc"];
+
+    const maintenant  = new Date();
+    const anneeActuelle = maintenant.getFullYear();
+
+    // ✅ 12 derniers mois depuis aujourd'hui
+    const debut12Mois = new Date();
+    debut12Mois.setMonth(debut12Mois.getMonth() - 11);
+    debut12Mois.setDate(1);
+    debut12Mois.setHours(0, 0, 0, 0);
+
+    // ✅ Ordonnances traitées par mois (vu = true = délivrée)
+    const ordonnancesParMois = await Notification.findAll({
+      attributes: [
+        [Sequelize.fn("MONTH",  Sequelize.col("createdAt")), "mois"],
+        [Sequelize.fn("YEAR",   Sequelize.col("createdAt")), "annee"],
+        [Sequelize.fn("COUNT",  Sequelize.col("id")),        "total"],
+      ],
+      where: {
+        destinataire: "pharmacie",
+        type:         "ordonnance",
+        createdAt:    { [Op.gte]: debut12Mois },
+      },
+      group: ["annee", "mois"],
+      order: [
+        [Sequelize.fn("YEAR",  Sequelize.col("createdAt")), "ASC"],
+        [Sequelize.fn("MONTH", Sequelize.col("createdAt")), "ASC"],
+      ],
+      raw: true,
+    });
+
+    // ✅ Ordonnances délivrées par mois (vu = true)
+    const delivreesParMois = await Notification.findAll({
+      attributes: [
+        [Sequelize.fn("MONTH",  Sequelize.col("createdAt")), "mois"],
+        [Sequelize.fn("YEAR",   Sequelize.col("createdAt")), "annee"],
+        [Sequelize.fn("COUNT",  Sequelize.col("id")),        "total"],
+      ],
+      where: {
+        destinataire: "pharmacie",
+        type:         "ordonnance",
+        vu:           true,
+        createdAt:    { [Op.gte]: debut12Mois },
+      },
+      group: ["annee", "mois"],
+      order: [
+        [Sequelize.fn("YEAR",  Sequelize.col("createdAt")), "ASC"],
+        [Sequelize.fn("MONTH", Sequelize.col("createdAt")), "ASC"],
+      ],
+      raw: true,
+    });
+
+    // ✅ Construire les 12 derniers mois avec labels
+    const labels   = [];
+    const totales  = [];
+    const deliv    = [];
+
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      const m = d.getMonth() + 1; // 1-12
+      const a = d.getFullYear();
+
+      labels.unshift(`${moisLabels[d.getMonth()]} ${a}`);
+
+      const found  = ordonnancesParMois.find(r => parseInt(r.mois) === m && parseInt(r.annee) === a);
+      const foundD = delivreesParMois.find(r   => parseInt(r.mois) === m && parseInt(r.annee) === a);
+
+      totales.unshift(found  ? parseInt(found.total)  : 0);
+      deliv.unshift(foundD   ? parseInt(foundD.total) : 0);
+    }
+
+    // ✅ Total général
+    const totalOrdonnances  = await Notification.count({
+      where: { destinataire: "pharmacie", type: "ordonnance" },
+    });
+    const totalDelivrees    = await Notification.count({
+      where: { destinataire: "pharmacie", type: "ordonnance", vu: true },
+    });
+    const totalEnAttente    = totalOrdonnances - totalDelivrees;
+
+    res.json({
+      labels,
+      ordonnances: totales,
+      delivrees:   deliv,
+      stats: {
+        totalOrdonnances,
+        totalDelivrees,
+        totalEnAttente,
+      },
+    });
+
+  } catch (error) {
+    console.error("Erreur getStatsOrdonnances:", error);
+    res.status(500).json({ message: "Erreur serveur", detail: error.message });
+  }
+};
+
+// ✅ Commandes récentes (ordonnances triées par date décroissante)
+export const getCommandesRecentes = async (req, res) => {
+  try {
+    const { limit = 10, mois, annee } = req.query;
+
+    const where = {
+      destinataire: "pharmacie",
+      type:         "ordonnance",
+    };
+
+    // ✅ Filtre par mois/année si fourni
+    if (mois && annee) {
+      const debut = new Date(parseInt(annee), parseInt(mois) - 1, 1);
+      const fin   = new Date(parseInt(annee), parseInt(mois),     1);
+      where.createdAt = { [Op.gte]: debut, [Op.lt]: fin };
+    }
+
+    const commandes = await Notification.findAll({
+      where,
+      order: [["createdAt", "DESC"]], // ✅ plus récente en premier
+      limit: parseInt(limit),
+    });
+
+    res.json(commandes);
+  } catch (error) {
+    console.error("Erreur getCommandesRecentes:", error);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+};

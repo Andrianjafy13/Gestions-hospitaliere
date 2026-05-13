@@ -28,48 +28,48 @@ e.preventDefault();
 
         const data = await response.json();
 
-            if (response.ok) {
-
-            const user = data.user;
-
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("role", user.role);
-            localStorage.setItem("medecinId", user.id);
+        if (response.ok) {
+          const user = data.user;
+        
+          // ✅ Nettoyer anciennes clés
+          localStorage.removeItem("medecinId");
+          localStorage.removeItem("medecinPrenom");
+          localStorage.removeItem("infirmierId");
+          localStorage.removeItem("pharmatieId");
+          localStorage.removeItem("receptionnisteId");
+        
+          // ✅ Clés universelles
+          localStorage.setItem("token",      data.token);
+          localStorage.setItem("role",       user.role);
+          localStorage.setItem("userId",     user.id);
+          localStorage.setItem("userNom",    user.nom);
+          localStorage.setItem("userPrenom", user.prenom);
+        
+          // ✅ Clés spécifiques — compatibilité avec les pages existantes
+          if (user.role === "medecin") {
+            localStorage.setItem("medecinId",     user.id);
             localStorage.setItem("medecinPrenom", user.prenom);
-            localStorage.setItem("photoProfil",      data.user.photoProfil || "");
-            console.log("Connexion réussie :", user.role);
-
-            if (user.role === "medecin") {
-            navigation("/Medecin");
-            }
-
-            if (user.role === "infirmier") {
-            navigation("/infirmier");
-            }
-
-            if (user.role === "receptionniste") {
-            navigation("/Receptionniste/Dashboard");
+          }
+          if (user.role === "infirmier") {
+            localStorage.setItem("infirmierId", user.id);
+          }
+          if (user.role === "pharmacien") {
+            localStorage.setItem("pharmatieId", user.id);
+          }
+          if (user.role === "receptionniste") {
             localStorage.setItem("receptionnisteId", user.id);
-            }
-
-            if (user.role === "pharmacien") {
-            navigation("/Pharmatie/Dashboard");
-            localStorage.setItem("pharmacienId", user.id);
-            }
-
-            if (user.role === "laboratoire") {
-            navigation("/Loboratoire");
-            }
-
-            if (user.role === "accuiel") {
-                navigation("/Accuiel");
-                }
-
-            } else {
-
-            alert(data.message);
-
-            }
+          }
+        
+          if (user.role === "medecin")        navigation("/Medecin");
+          if (user.role === "infirmier")      navigation("/infirmier");
+          if (user.role === "receptionniste") navigation("/Receptionniste/Dashboard");
+          if (user.role === "pharmacien")     navigation("/Pharmatie/Dashboard");
+          if (user.role === "laboratoire")    navigation("/Loboratoire");
+          if (user.role === "accuiel")        navigation("/Accuiel");
+        
+        } else {
+          alert(data.message);
+        }
 
             } catch (error) {
 

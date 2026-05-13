@@ -74,14 +74,7 @@ export default function DashboardPharmacie() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
                 { label: "Total médicaments",  value: stats.totalMedicament, icon: <Package size={16} />, bg: "bg-green-50",  text: "text-green-700" },
-
-                // ✅ FIX ICI
-                { label: "Stock faible",       
-                  value: stats.stockFaible.length, 
-                  icon: <AlertTriangle size={16} />, 
-                  bg: "bg-amber-50",  
-                  text: "text-amber-700" 
-                },
+                { label: "Stock faible",  value: stats.stockFaible.length, icon: <AlertTriangle size={16} />, bg: "bg-green-50",  text: "text-green-700" },
 
                 // ✅ FIX ICI
                 { label: "Expirent bientôt",   

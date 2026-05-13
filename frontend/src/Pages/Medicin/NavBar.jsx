@@ -8,6 +8,8 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import hospitalIcon from "../../assets/icons.png";
 import { useState, useEffect, useCallback } from "react";
 import { ChatIcon } from "../ComponentsMessage/ChatIcon";
+import { useProfil } from "../hook/useProfil";
+import { AvatarProfil } from "../profit/AvatarProfil";
 
 export default function NavBarMed() {
   return (
@@ -320,26 +322,38 @@ function ConsultationMenu({ active, onNavigate }) {
    TOPBAR
 ========================= */
 function Topbar() {
+  // ✅ Hook qui charge le profil depuis le backend au montage
+  const { profil, mettreAJourPhoto } = useProfil();
+
   return (
     <header className="sticky top-0 z-20 bg-white/90 backdrop-blur-md
       border-b border-slate-100 h-16 flex items-center justify-between
-      px-6 lg:ml-64 shadow-sm
-      pl-16 lg:pl-6"> {/* ✅ pl-16 sur mobile pour laisser place au hamburger */}
+      px-6 lg:ml-64 shadow-sm pl-16 lg:pl-6">
 
       <h1 className="text-lg font-semibold text-gray-700 truncate">
-        Tableau de bord Médecin
+        Tableau de bord Medecin
       </h1>
 
-      <div className="flex items-center gap-3 flex-shrink-0">
-        <span className="text-sm text-gray-600 hidden sm:block">Médecin</span>
-        <div className="w-9 h-9 rounded-full bg-teal-500 text-white
-          flex items-center justify-center flex-shrink-0">
-          <UserRoundPen size={18} />
+      <div className="flex items-center gap-4 flex-shrink-0">
+
+        {/* Nom affiché */}
+        <div className="hidden sm:flex flex-col items-end">
+          <span className="text-sm font-medium text-gray-700">
+            {profil.prenom} {profil.nom}
+          </span>
+          <span className="text-xs text-gray-400 capitalize">
+            {profil.role}
+          </span>
         </div>
-        <div className="w-9 h-9 rounded-full bg-teal-500 text-white
-          flex items-center justify-center flex-shrink-0">
-          <ChatIcon route="/medecin/Message" />
-        </div>
+
+        {/* ✅ Avatar interactif — photo depuis BDD */}
+        <AvatarProfil
+          key={profil.photoProfil || "avatar"}
+          profil={profil}
+          onPhotoMiseAJour={mettreAJourPhoto}
+        />
+
+        <ChatIcon route="/medecin/Message" />
       </div>
     </header>
   );

@@ -20,9 +20,7 @@ export default function NavBarRecep() {
   );
 }
 
-
 function Topbar() {
-  // ✅ Hook qui charge le profil depuis le backend au montage
   const { profil, mettreAJourPhoto } = useProfil();
 
   return (
@@ -36,7 +34,6 @@ function Topbar() {
 
       <div className="flex items-center gap-4 flex-shrink-0">
 
-        {/* Nom affiché */}
         <div className="hidden sm:flex flex-col items-end">
           <span className="text-sm font-medium text-gray-700">
             {profil.prenom} {profil.nom}
@@ -46,9 +43,10 @@ function Topbar() {
           </span>
         </div>
 
-        {/* ✅ Avatar interactif — photo depuis BDD */}
+        {/* ✅ key={profil.photoProfil} force le re-render quand l'URL change */}
         <AvatarProfil
-          profil={profil.photoProfil}
+          key={profil.photoProfil || "avatar"}
+          profil={profil}
           onPhotoMiseAJour={mettreAJourPhoto}
         />
 

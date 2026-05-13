@@ -7,42 +7,41 @@ export function useSocket() {
   const [connecte, setConnecte] = useState(false);
   const [nonLus,   setNonLus]   = useState(0);
 
-  // ✅ Récupérer userId universel — fonctionne pour tous les rôles
-  const userId =
-    localStorage.getItem("userId")       ||
-    localStorage.getItem("medecinId")    ||
-    localStorage.getItem("infirmierId")  ||
-    localStorage.getItem("pharmId")      ||
-    localStorage.getItem("receptId");
+  // ✅ Clé unique "userId" — plus de fallback sur medecinId etc.
+  // Le fallback causait le bug : mauvais userId → mauvaise room
+  const userId = localStorage.getItem("userId");
 
   useEffect(() => {
     if (!userId) return;
 
     socketRef.current = io("http://localhost:5000");
+    const socket = socketRef.current;
 
-    socketRef.current.on("connect", () => {
+    socket.on("connect", () => {
       setConnecte(true);
-      // ✅ Rejoindre la room privée
-      socketRef.current.emit("rejoindre", parseInt(userId));
+      // ✅ S'enregistrer dans SA room privée dès la connexion
+      socket.emit("rejoindre", parseInt(userId));
     });
 
-    socketRef.current.on("disconnect", () => setConnecte(false));
+    socket.on("disconnect", () => setConnecte(false));
 
-    // ✅ Incrémenter badge uniquement pour CE destinataire
-    socketRef.current.on("nouveauMessage", (msg) => {
-      // Vérifier que le message est bien pour nous
+    // ✅ Badge — seulement si le message est bien pour moi
+    socket.on("nouveauMessage", (msg) => {
       if (msg.destinataireId === parseInt(userId)) {
         setNonLus(prev => prev + 1);
       }
     });
 
-    // ✅ Charger non lus initiaux
+    // ✅ Charger non lus initiaux depuis la BDD
     fetch(`http://localhost:5000/api/message/non-lus/${userId}`)
       .then(r => r.json())
       .then(d => setNonLus(d.nonLus || 0))
       .catch(console.error);
 
-    return () => { socketRef.current?.disconnect(); };
+    return () => {
+      socket.disconnect();
+      socketRef.current = null;
+    };
   }, [userId]);
 
   const envoyerMessage = useCallback((destinataireId, contenu) => {
@@ -57,10 +56,10 @@ export function useSocket() {
   const resetNonLus = useCallback(() => setNonLus(0), []);
 
   return {
-    socket:         socketRef.current,
+    socket:        socketRef.current,
     connecte,
     nonLus,
-    userId,         // ✅ exposer userId pour FenetreChat
+    userId,
     envoyerMessage,
     resetNonLus,
   };
