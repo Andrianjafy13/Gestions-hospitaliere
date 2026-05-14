@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Settings, BarChart3, Share,
   CalendarDays, UserRoundPen, Menu, X,
-  ChevronRight, ChevronDown,
+  ChevronRight, ChevronDown, Pill
 } from "lucide-react";
 
 import { useState, useEffect } from "react";
@@ -204,7 +204,7 @@ function PharmatieMenu({ active, onNavigate }) {
           rounded-xl cursor-pointer transition-all duration-200
           ${active ? "bg-slate-700 text-white" : "text-gray-300 hover:bg-slate-800"}`}>
         <div className="flex items-center gap-3">
-          <CalendarDays size={18} />
+          <Pill size={18} />
           <span className="text-sm">Médicaments</span>
         </div>
         {open ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
