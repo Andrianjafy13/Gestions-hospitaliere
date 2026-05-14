@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Settings, BarChart3, Share,
   CalendarDays, UserRoundPen, Menu, X,
-  ChevronRight, ChevronDown, Pill
+  ChevronRight, ChevronDown, Pill, FileText 
 } from "lucide-react";
 
 import { useState, useEffect } from "react";
@@ -85,7 +85,7 @@ function Sidebar() {
             ${location.pathname.includes("delivrance")
               ? "bg-teal-600 text-white"
               : "text-gray-300 hover:bg-slate-800"}`}>
-            <CalendarDays size={18} />
+            <FileText  size={18} />
             <span className="text-sm">Délivrer ordonnance</span>
             {nonVus > 0 && (
               <span className="ml-auto bg-red-500 text-white text-xs font-medium
