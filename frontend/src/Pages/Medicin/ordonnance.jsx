@@ -77,7 +77,7 @@ export default function Ordonnance() {
             className="border rounded-lg px-3 py-2"
           />
           <input
-            type="text"
+            type="number"
             name="nombre"
             placeholder="Nombre plaquete"
             value={med.nombre}

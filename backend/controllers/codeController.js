@@ -8,6 +8,9 @@ import User from "../models/Users.js";
 import Notification from "../models/Notifications.js";
 import Chambre from "../models/Chambre.js";
 import SuiviPatient from "../models/suiviPatient.js";
+import { parseOrdonnance } from "../utils/parseOrdonnance.js";
+import { traiterStockOrdonnance } from "../services/stockService.js";
+import { getIO } from "../socket.js";
 
 export const patients = async (req, res) => {
   try {
@@ -117,47 +120,83 @@ export const patients = async (req, res) => {
     });
   }
 };
-// Créer une consultation
-// controllers/consultationController.js
-// ✅ Modifier CreationConsultation pour créer une notification pharmacie
 
 export const CreationConsultation = async (req, res) => {
   try {
-    const { patientId, medecinId, motif, diagnostic,
-            traitement, dateConsultation, heureConsultation } = req.body;
+    const {
+      patientId, medecinId, motif, diagnostic,
+      traitement, dateConsultation, heureConsultation,
+    } = req.body;
 
-    // ✅ Créer la consultation
+    // ── 1. Créer la consultation ─────────────────────────────────
     const consultation = await Consultations.create({
       patientId, medecinId, motif, diagnostic,
       traitement, dateConsultation, heureConsultation,
     });
 
-    // ✅ Récupérer nom patient et médecin
-    const patient = await Patients.findByPk(patientId,
-      { attributes: ["nom", "prenom"] });
-    const medecin = await User.findByPk(medecinId,
-      { attributes: ["nom", "prenom"] });
+    // ── 2. Récupérer patient + médecin ───────────────────────────
+    const [patient, medecin] = await Promise.all([
+      Patients.findByPk(patientId, { attributes: ["nom", "prenom"] }),
+      User.findByPk(medecinId,     { attributes: ["nom", "prenom"] }),
+    ]);
 
-    // ✅ Créer notification pour la pharmacie
-    if (traitement) { // seulement si ordonnance existe
+    const patientNom = `${patient?.prenom} ${patient?.nom}`;
+    const medecinNom = `Dr. ${medecin?.prenom} ${medecin?.nom}`;
+
+    // ── 3. Notification ordonnance → pharmacie ───────────────────
+    if (traitement) {
       await Notification.create({
-        type:          "ordonnance",
-        destinataire:  "pharmacie",
+        type:           "ordonnance",
+        destinataire:   "pharmacie",
         consultationId: consultation.id,
-        patientNom:    `${patient?.prenom} ${patient?.nom}`,
-        medecinNom:    `Dr. ${medecin?.prenom} ${medecin?.nom}`,
+        patientNom,
+        medecinNom,
         traitement,
-        vu:            false,
+        vu:             false,
+      });
+    }
+
+    // ── 4. Traitement automatique du stock ───────────────────────
+    if (traitement) {
+      const lignes = parseOrdonnance(traitement);
+      const io     = getIO();
+
+      // Fonction notifier → émet sur la room "pharmacie"
+      const notifier = (payload) => {
+        io.to("pharmacie").emit("alerte_stock", {
+          ...payload,
+          consultationId: consultation.id,
+          patientNom,
+          medecinNom,
+          horodatage: new Date().toISOString(),
+        });
+      };
+
+      const rapport = await traiterStockOrdonnance(
+        lignes,
+        notifier,
+        { patientNom, medecinNom, consultationId: consultation.id }
+      );
+
+      // Log rapport en dev
+      if (process.env.NODE_ENV !== "production") {
+        console.log("📦 Rapport stock :", JSON.stringify(rapport, null, 2));
+      }
+
+      return res.status(201).json({
+        message:    "Consultation créée",
+        consultation,
+        rapportStock: rapport,   // ← utile pour debug côté frontend
       });
     }
 
     res.status(201).json({ message: "Consultation créée", consultation });
+
   } catch (error) {
     console.error("Erreur CreationConsultation:", error);
     res.status(500).json({ message: "Erreur serveur", detail: error.message });
   }
 };
-
 
 export const rendezVous = async (req, res) => {
   try {
@@ -212,9 +251,6 @@ export const getNonVus = async (req, res) => {
     res.status(500).json({ message: "Erreur serveur" });
   }
 };
-// ✅ Endpoint 3 — Marquer tous les RDV comme vus
-// Appelé quand le médecin clique sur "Rendez-vous"
-// ✅ Correction marquerVus — forcer la conversion
 export const marquerVus = async (req, res) => {
   try {
     const medecinId = parseInt(req.params.medecinId); // ✅ convertir en number

@@ -77,6 +77,7 @@ export default function PharmacieChart() {
     expirentBientot:  [],
   });
   const [loadingStock, setLoadingStock] = useState(true);
+  const [ordonnances,   setOrdonnances]   = useState([]);
 
   // ── Fetch stats ordonnances ───────────────────────────
   useEffect(() => {
@@ -126,14 +127,17 @@ export default function PharmacieChart() {
       }))
       .catch(console.error)
       .finally(() => setLoadingStock(false));
+
+    fetch("http://localhost:5000/api/GET/notifications/pharmacie/ordonnances")
+      .then(r => r.json()).then(d => setOrdonnances(Array.isArray(d) ? d.slice(0,5) : [])).catch(console.error);
   }, []);
 
   // ── Données PieChart ──────────────────────────────────
   const dataPie = [
-    { name: "Critique",       value: statsStock.stockCritique.length },
-    { name: "Stock faible",   value: statsStock.stockFaible.length   },
-    { name: "Expire bientôt", value: statsStock.expirentBientot.length },
-  ].filter(d => d.value > 0); // ✅ masquer les segments à 0
+    { value: statsStock.stockCritique.length },
+    {  value: statsStock.stockFaible.length   },
+    {  value: statsStock.expirentBientot.length },
+  ].filter(d => d.value > 0); 
 
   // ── Filtre graphique barres ───────────────────────────
   const chartDataFiltre = moisFiltre
@@ -242,7 +246,7 @@ export default function PharmacieChart() {
           </div>
 
           {loadingStock ? (
-            <div className="flex items-center justify-center h-40">
+            <div className="flex items-center justify-center h-40 ">
               <p className="text-gray-400 text-sm">Chargement...</p>
             </div>
           ) : dataPie.every(d => d.value === 0) ? (
@@ -256,12 +260,12 @@ export default function PharmacieChart() {
                 <PieChart>
                   <Pie
                     data={dataPie}
-                    dataKey="value"
-                    nameKey="name"
+                    // dataKey="value"
+                    // nameKey="name"
                     outerRadius={70}
-                    innerRadius={35}   // ✅ donut plus moderne
+                    innerRadius={35}   
                     paddingAngle={3}
-                    label={({ name, value }) => `${value}`}
+                    // label={({ name, value }) => `${value}`}
                     labelLine={false}
                   >
                     {dataPie.map((_, i) => (
@@ -269,7 +273,7 @@ export default function PharmacieChart() {
                     ))}
                   </Pie>
                   <Tooltip formatter={(value, name) => [`${value} médicaments`, name]} />
-                  <Legend wrapperStyle={{ fontSize: "11px" }} />
+                  {/* <Legend wrapperStyle={{ fontSize: "11px" }} /> */}
                 </PieChart>
               </ResponsiveContainer>
 
@@ -333,7 +337,7 @@ export default function PharmacieChart() {
                         })}
                       </td>
                       <td className="py-3 text-sm font-medium text-gray-800">
-                        {details.patientNom || details.patient || "—"}
+                        {details.patientNom || details.patientNom || "—"}
                       </td>
                       <td className="py-3 text-sm text-gray-600 max-w-xs truncate">
                         {details.medicament || details.traitement || cmd.message?.slice(0, 40) || "—"}

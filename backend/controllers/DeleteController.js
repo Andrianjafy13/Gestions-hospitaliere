@@ -4,6 +4,7 @@ import Chambre from "../models/Chambre.js";
 import Consultations from "../models/Consultation.js";
 import Garde from "../models/Garde.js";
 import Medicaments from "../models/Medicament.js";
+import Notification from "../models/Notifications.js";
 import Patients from "../models/Patients.js";
 import RendezVous from "../models/Rendez-vous.js";
 
@@ -72,6 +73,21 @@ export const supprimerPatient = async (req, res) => {
       await Consultations.destroy({ where: { id: req.params.id } });
       res.json({ message: "Consultation supprimée" });
     } catch (error) {
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  };
+  export const suprimerOrdonance =  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deleted = await Notification.destroy({ where: { id } });
+  
+      if (!deleted) {
+        return res.status(404).json({ message: "Ordonnance introuvable" });
+      }
+  
+      res.json({ message: "Ordonnance supprimée" });
+    } catch (err) {
+      console.error("Erreur suppression ordonnance:", err);
       res.status(500).json({ message: "Erreur serveur" });
     }
   };

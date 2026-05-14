@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FaEdit, FaTrash } from "react-icons/fa";
+import { FaEdit, FaTrash, FaArchive } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { ModalConfirmation } from "../confirmationSup/ModalConfirmation";
 
@@ -48,9 +48,17 @@ export default function ListeMedicaments() {
 
   return (
     <div className="p-6">
-      <h2 className="text-xl font-bold mb-4 text-gray-700">
-        Liste des médicaments
-      </h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold text-gray-700">Liste des médicaments</h2>
+        <button
+          onClick={() => navigate("/pharmatie/archives-medicaments")}
+          className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-600
+            rounded-lg hover:bg-gray-200 text-sm font-medium transition"
+        >
+          <FaArchive size={14} />
+          Voir archives
+        </button>
+      </div>
 
       {loading ? (
         <p className="text-center text-gray-400 text-sm py-8">Chargement...</p>

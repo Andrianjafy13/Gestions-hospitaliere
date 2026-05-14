@@ -46,6 +46,7 @@ import AlertesMedicamentsPage   from "./Pages/Pharmatie/AlertesMedicamentsPage";
 import PharmacieChart           from "./Pages/Pharmatie/PharmacieChart";
 import { FenetreChat }          from "./Pages/ComponentsMessage/FenetreChat";
 import ListePatientRecep from "./Pages/receptionniste/ListePatientsRecep";
+import ArchiveMedicaments from "./Pages/Pharmatie/ArchiveMedicaments";
 
 
 export default function App() {
@@ -219,6 +220,10 @@ export default function App() {
 
       <Route path="/Pharmatie/modifier/medicament/:id" element={
         <PharmaLayout><ModifierMedicament /></PharmaLayout>
+      }/>
+
+      <Route path="/pharmatie/archives-medicaments" element={
+        <PharmaLayout><ArchiveMedicaments /></PharmaLayout>
       }/>
 
       {/* ✅ Route modifier sans préfixe — gardée pour compatibilité */}

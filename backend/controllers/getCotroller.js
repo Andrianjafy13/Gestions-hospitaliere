@@ -9,6 +9,7 @@ import Notification from "../models/Notifications.js";
 import Chambre from "../models/Chambre.js";
 import { Op } from "sequelize";
 import SuiviPatient from "../models/suiviPatient.js";
+import ProduitExpire from "../models/ProduitExpire.js";
 
 
 export const getListePatients = async (req, res) => {
@@ -381,6 +382,7 @@ export const getGardes = async (req, res) => {
 export const getMedicaments = async (req, res) => {
   try {
     const medicaments = await Medicaments.findAll({
+      where: { statut: "actif" },
       order: [["dateExpiration", "ASC"]],
     });
 
@@ -391,6 +393,17 @@ export const getMedicaments = async (req, res) => {
       message: "Erreur serveur",
       error: error.message,
     });
+  }
+};
+
+export const getMedicamentExpire = async (req, res) => {
+  try {
+    const expires = await ProduitExpire.findAll({
+      order: [["dateArchivage", "DESC"]],
+    });
+    res.json(expires);
+  } catch (err) {
+    res.status(500).json({ message: "Erreur serveur", detail: err.message });
   }
 };
 

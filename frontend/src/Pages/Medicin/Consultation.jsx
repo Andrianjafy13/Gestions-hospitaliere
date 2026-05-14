@@ -224,7 +224,7 @@ export default function Consultation() {
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm
             font-medium transition-colors border ${
             modeConfidentiel
-              ? "bg-gray-800 text-white border-gray-700"
+              ? "bg-gray-500 text-white border-gray-700"
               : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
           }`}
         >
@@ -244,23 +244,9 @@ export default function Consultation() {
               <circle cx="12" cy="12" r="3"/>
             </svg>
           )}
-          {modeConfidentiel ? "Mode confidentiel actif" : "Masquer traitement"}
+          {modeConfidentiel ? "Traitement masquer" : "Masquer traitement"}
         </button>
       </div>
-
-      {/* Bandeau mode confidentiel */}
-      {modeConfidentiel && (
-        <div className="flex items-center gap-3 bg-gray-800 text-gray-100
-          rounded-lg px-4 py-2 mb-5 text-xs">
-          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor"
-            strokeWidth="2" viewBox="0 0 24 24">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-            <path d="M7 11V7a5 5 0 0110 0v4"/>
-          </svg>
-          Mode confidentiel actif — le traitement et les codes-barres sont masqués
-          à l'écran. Ils apparaîtront uniquement dans le PDF exporté.
-        </div>
-      )}
 
       <form className="space-y-6" onSubmit={handleSubmit}>
 
@@ -307,7 +293,7 @@ export default function Consultation() {
         {/* SECTION TRAITEMENT CONFIDENTIELLE */}
         <div className={`rounded-xl border transition-all duration-300 overflow-hidden ${
           modeConfidentiel
-            ? "border-gray-700 bg-gray-900"
+            ? "border-gray-500 bg-gray-900"
             : "border-teal-200 bg-teal-50"
         }`}>
 
@@ -325,12 +311,12 @@ export default function Consultation() {
               <span className={`text-sm font-medium ${
                 modeConfidentiel ? "text-gray-300" : "text-teal-800"
               }`}>
-                Traitement & Code-barres
+                Traitement
               </span>
             </div>
             <span className={`text-xs px-2 py-0.5 rounded-full ${
               modeConfidentiel
-                ? "bg-gray-700 text-gray-400"
+                ? "bg-gray-500 text-gray-400"
                 : "bg-teal-100 text-teal-600"
             }`}>
               {modeConfidentiel ? "🔒 Masqué" : "👁 Visible"}
@@ -344,13 +330,13 @@ export default function Consultation() {
               <label className={`block text-xs mb-1 ${
                 modeConfidentiel ? "text-gray-400" : "text-gray-600"
               }`}>
-                Traitement (ordonnance)
+                Ordonnance
               </label>
               {modeConfidentiel ? (
                 <div className="flex items-center gap-3">
                   <div className="flex-1 px-3 py-2 rounded-lg bg-gray-800 border
                     border-gray-700 text-gray-500 text-sm select-none tracking-widest">
-                    {formData.traitement ? "●●●●●●●●●●●●●●●" : "Aucun traitement saisi"}
+                    {formData.traitement ? "●●●●●●●●●●●●●●●" : "Aucun traitement"}
                   </div>
                   <button type="button" onClick={() => navigate("/ordonnance")}
                     className="px-3 py-2 bg-teal-600 text-white text-xs rounded-lg
@@ -364,52 +350,6 @@ export default function Consultation() {
                     bg-white text-left text-sm focus:ring-teal-500 focus:border-teal-200">
                   {formData.traitement || "Cliquer pour créer l'ordonnance"}
                 </button>
-              )}
-            </div>
-
-            {/* Code-barres scan / saisie manuelle */}
-            <div>
-              <label className={`block text-xs mb-1 ${
-                modeConfidentiel ? "text-gray-400" : "text-gray-600"
-              }`}>
-                Code-barres médicament (scan ou saisie)
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type={modeConfidentiel ? "password" : "text"}
-                  value={barcodeInput}
-                  onChange={e => setBarcodeInput(e.target.value)}
-                  onKeyDown={e =>
-                    e.key === "Enter" && (e.preventDefault(), handleBarcodeConfirm())
-                  }
-                  placeholder="Scanner ou saisir le code…"
-                  className={`flex-1 px-3 py-2 rounded-lg border text-sm
-                    focus:ring-teal-500 focus:border-teal-500 ${
-                    modeConfidentiel
-                      ? "bg-gray-800 border-gray-700 text-gray-200 placeholder-gray-600"
-                      : "bg-white border-gray-300"
-                  }`}
-                />
-                <button type="button" onClick={handleBarcodeConfirm}
-                  className="px-3 py-2 bg-teal-600 text-white text-xs rounded-lg
-                    hover:bg-teal-700 whitespace-nowrap">
-                  Lier
-                </button>
-              </div>
-
-              {barcodeValue && (
-                <div className={`mt-2 flex items-center gap-2 text-xs ${
-                  modeConfidentiel ? "text-gray-500" : "text-teal-700"
-                }`}>
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor"
-                    strokeWidth="2" viewBox="0 0 24 24">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
-                  {modeConfidentiel
-                    ? "Code-barres lié (masqué)"
-                    : `Code-barres lié : ${barcodeValue}`
-                  }
-                </div>
               )}
             </div>
           </div>

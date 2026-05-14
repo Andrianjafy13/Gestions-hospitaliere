@@ -13,6 +13,8 @@ import routePut      from "./routes/routePut.js";
 import routeDelete   from "./routes/routeDelete.js";
 import messageRoutes from "./routes/messageRoutes.js";
 import Message       from "./models/Message.js";
+import { initIO } from "./socket.js";
+import { demarrerCronExpiration } from "./jobs/expirationCron.js";
 
 const app = express();
 
@@ -34,6 +36,8 @@ app.use("/api/GET",       routeGet);
 app.use("/api/PUT",       routePut);
 app.use("/api/DELETE",    routeDelete);
 app.use("/api/message",   messageRoutes);
+
+
 
 /* ── Map userId → socketId ── */
 const utilisateursConnectes = {};
@@ -166,6 +170,7 @@ io.on("connection", (socket) => {
     });
   });
 
+
   // ✅ Nettoyage à la déconnexion
   socket.on("disconnect", () => {
     const userId = Object.keys(utilisateursConnectes)
@@ -175,12 +180,20 @@ io.on("connection", (socket) => {
       console.log(`User ${userId} déconnecté`);
     }
   });
+
+  initIO(io);   // ← ajouter juste après
+
+socket.on("rejoindre_pharmacie", () => {
+  socket.join("pharmacie");
+  console.log(`Socket ${socket.id} → room pharmacie`);
+});
 });
 
 /* ── Base de données + démarrage ── */
 try {
   await sequelize.sync({ alter: true });
   console.log("Base de données synchronisée");
+  demarrerCronExpiration();
 
   server.listen(5000, () => {
     console.log("Serveur démarré sur http://localhost:5000");

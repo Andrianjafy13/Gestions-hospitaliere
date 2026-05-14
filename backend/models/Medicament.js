@@ -36,7 +36,12 @@ const Medicaments = sequelize.define("Medicaments", {
   dateExpiration: {
     type: DataTypes.DATEONLY, // ✅ mieux que DATE
     allowNull: false
-  }
+  },
+  statut: {
+    type: DataTypes.ENUM("actif", "perime", "retire"),
+    allowNull: false,
+    defaultValue: "actif",
+  },
 
 }, {
   timestamps: true

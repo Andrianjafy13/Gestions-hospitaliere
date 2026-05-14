@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Package, AlertTriangle, Clock, FileText } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
+import { io } from "socket.io-client";
 
 export default function DashboardPharmacie() {
   const pharmaNom = localStorage.getItem("pharmaNom") || "Pharmacien";
@@ -36,6 +37,38 @@ export default function DashboardPharmacie() {
 
     fetch("http://localhost:5000/api/GET/notifications/pharmacie/ordonnances")
       .then(r => r.json()).then(d => setOrdonnances(Array.isArray(d) ? d.slice(0,5) : [])).catch(console.error);
+  }, []);
+
+  const socketRef = useRef(null);
+  const [alertesStock, setAlertesStock] = useState([]);  // ← nouveau state
+
+  useEffect(() => {
+    // Connexion Socket + rejoindre room pharmacie
+    socketRef.current = io("http://localhost:5000");
+    socketRef.current.emit("rejoindre_pharmacie");
+
+    // Écoute des alertes stock temps réel
+    socketRef.current.on("alerte_stock", (payload) => {
+      setAlertesStock(prev => [payload, ...prev].slice(0, 10)); // garder 10 max
+
+      // Toast natif (remplacer par react-toastify si disponible)
+      const emoji = payload.type === "stock_insuffisant" ? "🚨" : "⚠️";
+      console.warn(`${emoji} ${payload.message}`);
+    });
+    socketRef.current.on("medicaments_perimes", (payload) => {
+      console.warn("🗑️ Médicaments périmés retirés:", payload);
+    
+      // Afficher une alerte dans le dashboard
+      setAlertesStock(prev => [{
+        type:    "expiration",
+        message: payload.message,
+        liste:   payload.liste,
+        horodatage: payload.horodatage,
+      }, ...prev]);
+    });
+
+
+    return () => socketRef.current?.disconnect();
   }, []);
 
   const getExpirationStyle = (dateExpiration) => {
@@ -105,6 +138,17 @@ export default function DashboardPharmacie() {
               ))}
       </div>
 
+      {alertesStock.length > 0 && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 space-y-2">
+          <p className="text-sm font-semibold text-red-700">🚨 Alertes stock temps réel</p>
+          {alertesStock.map((a, i) => (
+            <div key={i} className="text-xs text-red-600 bg-white rounded-lg px-3 py-2 border border-red-100">
+              <span className="font-medium">{a.nomMedicament}</span> — {a.message}
+              <span className="text-gray-400 ml-2">{a.patientNom} · {a.medecinNom}</span>
+            </div>
+          ))}
+        </div>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
         {/* STOCK CRITIQUE */}
