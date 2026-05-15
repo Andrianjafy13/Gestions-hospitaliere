@@ -159,6 +159,7 @@ export default function AjoutMedicament() {
               name="dateExpiration"
               value={form.dateExpiration}
               onChange={handleChange}
+              min={new Date().toISOString().split("T")[0]}
               className="w-full border rounded-lg p-3 mt-1"
             />
           </div>

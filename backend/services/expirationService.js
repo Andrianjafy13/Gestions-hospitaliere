@@ -16,7 +16,10 @@ export async function archiverMedicamentsPerimes() {
     const perimes = await Medicaments.findAll({
       where: {
         dateExpiration: { [Op.lte]: aujourd_hui },
-        statut: "actif",
+        [Op.or]: [
+          { statut: "actif" },
+          { statut: null },   
+        ],
       },
       transaction: t,
     });

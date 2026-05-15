@@ -402,6 +402,7 @@ export const getMedicamentExpire = async (req, res) => {
       order: [["dateArchivage", "DESC"]],
     });
     res.json(expires);
+    console.log(expires)
   } catch (err) {
     res.status(500).json({ message: "Erreur serveur", detail: err.message });
   }

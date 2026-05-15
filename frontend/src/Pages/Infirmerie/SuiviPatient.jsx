@@ -50,7 +50,6 @@ export function AjoutSuivi() {
     p => p.id === parseInt(form.patientId)
   );
 
-  // ✅ Style par typePatient
   const decisionStyle = {
     Externe:     { bg: "bg-teal-50 border-teal-200",  text: "text-teal-700",  badge: "bg-teal-100 text-teal-800"  },
     Hospitalisé: { bg: "bg-blue-50 border-blue-200",  text: "text-blue-700",  badge: "bg-blue-100 text-blue-800"  },
@@ -248,13 +247,12 @@ export function AjoutSuivi() {
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Tension artérielle *
             <span className="text-gray-400 text-xs font-normal ml-1">
-              (ex: 12/8)
+              
             </span>
           </label>
           <input
             type="text"
             name="tension"
-            placeholder="ex: 12/8 ou 120/80"
             value={form.tension}
             onChange={handleChange}
             required

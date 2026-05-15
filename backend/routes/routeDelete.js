@@ -1,6 +1,6 @@
 // routes/deleteRoutes.js
 import express from "express";
-import { supprimerConsultation, supprimerGarde, supprimerMedicament, supprimerPatient, supprimerRendezVous, suprimerOrdonance } from "../controllers/DeleteController.js";
+import { supprimerArcive, supprimerConsultation, supprimerGarde, supprimerMedicament, supprimerPatient, supprimerRendezVous, suprimerOrdonance } from "../controllers/DeleteController.js";
 
 const router = express.Router();
 
@@ -10,5 +10,6 @@ router.delete("/garde/:id",        supprimerGarde);
 router.delete("/medicament/:id",   supprimerMedicament);
 router.delete("/consultation/:id", supprimerConsultation);
 router.delete("/notifications/pharmacie/:id", suprimerOrdonance);
+router.delete("/archive/:id", supprimerArcive);
 
 export default router;

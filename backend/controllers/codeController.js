@@ -11,6 +11,7 @@ import SuiviPatient from "../models/suiviPatient.js";
 import { parseOrdonnance } from "../utils/parseOrdonnance.js";
 import { traiterStockOrdonnance } from "../services/stockService.js";
 import { getIO } from "../socket.js";
+import { archiverMedicamentsPerimes } from "../services/expirationService.js";
 
 export const patients = async (req, res) => {
   try {
@@ -377,6 +378,16 @@ export const ajoutMedecament = async (req, res) => {
       error: error.message
     });
   }
+};
+
+export const ajoutExpire = async (req, res) => {
+  try {
+    const rapport = await archiverMedicamentsPerimes();
+    res.json({ message: "Archivage terminé", ...rapport });
+  } catch (err) {
+    res.status(500).json({ message: "Erreur archivage", detail: err.message });
+  }
+
 };
 
 export const ajoutChambre = async (req, res) => {

@@ -6,6 +6,7 @@ import Garde from "../models/Garde.js";
 import Medicaments from "../models/Medicament.js";
 import Notification from "../models/Notifications.js";
 import Patients from "../models/Patients.js";
+import ProduitExpire from "../models/ProduitExpire.js";
 import RendezVous from "../models/Rendez-vous.js";
 
 // controllers/deleteController.js
@@ -62,6 +63,15 @@ export const supprimerPatient = async (req, res) => {
   export const supprimerMedicament = async (req, res) => {
     try {
       await Medicaments.destroy({ where: { id: req.params.id } });
+      res.json({ message: "Médicament supprimé" });
+    } catch (error) {
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  };
+
+  export const supprimerArcive = async (req, res) => {
+    try {
+      await ProduitExpire.destroy({ where: { id: req.params.id } });
       res.json({ message: "Médicament supprimé" });
     } catch (error) {
       res.status(500).json({ message: "Erreur serveur" });
