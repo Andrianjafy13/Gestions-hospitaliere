@@ -12,6 +12,7 @@ import { parseOrdonnance } from "../utils/parseOrdonnance.js";
 import { traiterStockOrdonnance } from "../services/stockService.js";
 import { getIO } from "../socket.js";
 import { archiverMedicamentsPerimes } from "../services/expirationService.js";
+import { calculerFacture } from "../services/factureService.js";
 
 export const patients = async (req, res) => {
   try {
@@ -58,7 +59,7 @@ export const patients = async (req, res) => {
     // ✅ Les patients Externes et Urgence n'ont pas forcément de chambre
     let chambreAssignee = null;
 
-    if (typePatient === "Hospitalisé") {
+    if (typePatient === "Hospitalisé" || "Urgence") {
 
       if (!chambreId) {
         return res.status(400).json({
@@ -196,6 +197,65 @@ export const CreationConsultation = async (req, res) => {
   } catch (error) {
     console.error("Erreur CreationConsultation:", error);
     res.status(500).json({ message: "Erreur serveur", detail: error.message });
+  }
+};
+
+export const genererFacture = async (req, res) => {
+  try {
+    const { traitement, patientNom, medecinNom, consultationId } = req.body;
+
+    if (!traitement?.trim()) {
+      return res.status(400).json({ message: "Ordonnance vide." });
+    }
+
+    // ── 1. Parser l'ordonnance (même util que CreationConsultation) ──
+    const lignes = parseOrdonnance(traitement);
+    if (lignes.length === 0) {
+      return res.status(400).json({ message: "Aucun médicament valide." });
+    }
+
+    // ── 2. Calculer la facture ────────────────────────────────────
+    const facture = await calculerFacture(lignes);
+
+    // ── 3. Notifier si alertes ────────────────────────────────────
+    if (facture.alertes.length > 0) {
+
+      // Socket temps réel → room pharmacie
+      try {
+        getIO().to("pharmacie").emit("alerte_facturation", {
+          patientNom,
+          medecinNom,
+          consultationId,
+          alertes:     facture.alertes,
+          totalAPayer: facture.totalAPayer,
+          horodatage:  new Date().toISOString(),
+        });
+      } catch (e) {
+        console.warn("Socket non disponible:", e.message);
+      }
+
+      // Notification persistante en BDD
+      await Notification.create({
+        type:         "alerte_facturation",
+        destinataire: "pharmacie",
+        patientNom,
+        medecinNom,
+        message:      facture.alertes.map(a => a.message).join(" | "),
+        vu:           false,
+      });
+    }
+
+    // ── 4. Réponse ────────────────────────────────────────────────
+    return res.status(200).json({
+      patientNom,
+      medecinNom,
+      consultationId,
+      facture,
+    });
+
+  } catch (err) {
+    console.error("Erreur génération facture:", err);
+    res.status(500).json({ message: "Erreur serveur", detail: err.message });
   }
 };
 

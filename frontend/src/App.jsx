@@ -47,6 +47,7 @@ import PharmacieChart           from "./Pages/Pharmatie/PharmacieChart";
 import { FenetreChat }          from "./Pages/ComponentsMessage/FenetreChat";
 import ListePatientRecep from "./Pages/receptionniste/ListePatientsRecep";
 import ArchiveMedicaments from "./Pages/Pharmatie/ArchiveMedicaments";
+import Caisse from "./Pages/Pharmatie/Caisse";
 
 
 export default function App() {
@@ -212,6 +213,10 @@ export default function App() {
 
       <Route path="/pharmatie/alertes-medicaments" element={
         <PharmaLayout><AlertesMedicamentsPage /></PharmaLayout>
+      }/>
+
+      <Route path="/Pharmatie/Facture" element={
+        <PharmaLayout><Caisse /></PharmaLayout>
       }/>
 
       <Route path="/pharmatie/statistiques-pharmaceutique" element={

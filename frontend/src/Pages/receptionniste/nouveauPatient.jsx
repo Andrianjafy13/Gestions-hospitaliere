@@ -157,7 +157,9 @@ export default function CreatePatients() {
           <div>
             <label className="block text-sm font-medium text-gray-700">Date de naissance *</label>
             <input type="date" name="dateNaissance" value={formData.dateNaissance}
-              onChange={handleChange} required
+              onChange={handleChange}
+              max={new Date().toISOString().split("T")[0]}
+              min={`${new Date().getFullYear() - 120}-01-01`}
               className="mt-1 block w-full px-3 py-2 border rounded-lg border-gray-300
                 focus:ring-teal-500 focus:border-teal-500" />
           </div>

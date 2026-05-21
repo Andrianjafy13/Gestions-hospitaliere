@@ -64,15 +64,15 @@ export default function PatientTable() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase">Nom</th>
-                <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase">Prénom</th>
-                <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase">Date de naissance</th>
-                <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase">Sexe</th>
-                <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase">Téléphone</th>
-                <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase">Type patient</th>
-                <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase">Groupe sanguin</th>
-                <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase">Chambre</th>
-                <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase">Actions</th>
+                <th className="py-2 text-left text-xs font-medium text-gray-500 uppercase">Nom</th>
+                <th className="py-2 text-left text-xs font-medium text-gray-500 uppercase">Prénom</th>
+                <th className="py-2 text-left text-xs font-medium text-gray-500 uppercase">Date de naissance</th>
+                <th className="py-2 text-center text-xs font-medium text-gray-500 uppercase">Sexe</th>
+                <th className="py-2 text-left text-xs font-medium text-gray-500 uppercase">Téléphone</th>
+                <th className="py-2 text-left text-xs font-medium text-gray-500 uppercase">Type patient</th>
+                <th className="py-2 text-left text-xs font-medium text-gray-500 uppercase">Groupe sanguin</th>
+                <th className="py-2 text-left text-xs font-medium text-gray-500 uppercase">Chambre</th>
+                <th className="py-2 text-center text-xs font-medium text-gray-500 uppercase">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
