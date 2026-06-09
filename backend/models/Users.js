@@ -34,6 +34,10 @@ const User = sequelize.define("User", {
     ),
     allowNull: false
   },
+  specialite : {
+    type : DataTypes.STRING,
+    allowNull : false
+  },
   photoProfil: {
     type: DataTypes.STRING,
     allowNull: true,

@@ -48,6 +48,10 @@ import { FenetreChat }          from "./Pages/ComponentsMessage/FenetreChat";
 import ListePatientRecep from "./Pages/receptionniste/ListePatientsRecep";
 import ArchiveMedicaments from "./Pages/Pharmatie/ArchiveMedicaments";
 import Caisse from "./Pages/Pharmatie/Caisse";
+import TeleconsultationPage from "./Pages/Call/TeleconsultationPage";
+import PatientCall from "./Pages/Medicin/CallPatient";
+import MedecinPage from "./Pages/Medicin/CallPatient";
+import HopitalPortail from "./Pages/Public/PublicInterface";
 
 
 export default function App() {
@@ -59,10 +63,23 @@ export default function App() {
       <Route path="/"         element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/Accuiel"  element={<AjoutChambre />} />
+      <Route path="/Accuiel"  element={<AjoutChambre />} />
+      <Route path="/AccueilPublic" element={<HopitalPortail />} />      
 
       {/* ────────────────────────────
            MÉDECIN
       ──────────────────────────── */}
+      <Route
+        path="/teleconsultation/room/:numero"
+        element={
+          <MedecinLayout><TeleconsultationPage /></MedecinLayout>}
+      />
+      <Route
+        path="/medecin/Appel"
+        element={
+          <MedecinLayout><MedecinPage /></MedecinLayout>}
+      />
+
       <Route path="/Medecin" element={
         <MedecinLayout><Dashboard /></MedecinLayout>
       }/>

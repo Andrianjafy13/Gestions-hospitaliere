@@ -1,5 +1,5 @@
 import express from "express";
-import { getChambresDisponibles, getChartData, getCommandesRecentes, getCommandesRecentess, getConsultations, getCountMedicament, getGardes, getInfirmerie, getListePatients, getListePatientsReceptionniste, getListeRendezVous, getMedecin, getMedicamentExpire, getMedicaments, getNonVusPharmacien, getOrdonnancesPharmacien, getPatientHospitalise, getPatients, getPatientsHospitalises, getProchainRdv, getRendezVousMedecin, getStats, getStatsMensuelles, getStatsOrdonnances, getStatsOrdonnancess, getStatsReceptionniste, getSuivisPatient } from "../controllers/getCotroller.js";
+import { getChambresDisponibles, getChartData, getCommandesRecentes, getCommandesRecentess, getConsultations, getCountMedicament, getGardes, getInfirmerie, getListePatients, getListePatientsReceptionniste, getListeRendezVous, getMedecin, getMedicamentExpire, getMedicaments, getNonVusPharmacien, getOrdonnancesPharmacien, getPatientHospitalise, getPatients, getPatientsHospitalises, getProchainRdv, getRendezVousMedecin, getStats, getStatsMensuelles, getStatsOrdonnances, getStatsOrdonnancess, getStatsReceptionniste, getSuivisPatient, getUsersByRole } from "../controllers/getCotroller.js";
 import { getNonVus, marquerVus } from "../controllers/codeController.js";
 import { getProfil } from "../controllers/profilController.js";
 
@@ -31,6 +31,7 @@ router.get("/receptionniste/stats/:receptionnisteId",       getStatsReceptionnis
 router.get("/receptionniste/prochains-rdv", getProchainRdv);
 router.get("/receptionniste/patients/:receptionnisteId", getListePatientsReceptionniste);
 router.get("/profil/:userId",        getProfil);
+router.get("/public", getUsersByRole);
 
 
 export default router;

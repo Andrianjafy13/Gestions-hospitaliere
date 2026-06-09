@@ -28,4 +28,5 @@ const Chambre = sequelize.define("Chambre", {
     }
   ]
 });
+
 export default Chambre;

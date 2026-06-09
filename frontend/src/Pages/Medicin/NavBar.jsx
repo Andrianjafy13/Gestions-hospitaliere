@@ -2,6 +2,7 @@ import {
   LayoutDashboard, Users, ClipboardList, Settings,
   BarChart3, Share, BookOpenCheck, Stethoscope,
   UserRoundPen, Menu, X, ChevronRight, ChevronDown,
+  Phone,
 } from "lucide-react";
 
 import { Link, useNavigate, useLocation } from "react-router-dom";
@@ -183,6 +184,15 @@ function Sidebar() {
           />
         </Link>
 
+        <Link to="/medecin/Appel"
+          onClick={() => setMobileOuvert(false)}>
+          <MenuItem
+            icon={<Phone size={18} />}
+            label="Appel"
+            active={location.pathname.includes("appel")}
+          />
+        </Link>
+
         <Link to="/medecin/settings"
           onClick={() => setMobileOuvert(false)}>
           <MenuItem
@@ -343,6 +353,9 @@ function Topbar() {
           </span>
           <span className="text-xs text-gray-400 capitalize">
             {profil.role}
+          </span>
+          <span className="text-xs text-gray-400 capitalize">
+            {profil.specialite}
           </span>
         </div>
 

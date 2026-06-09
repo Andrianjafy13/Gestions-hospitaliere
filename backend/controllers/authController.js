@@ -1,13 +1,14 @@
 import User   from "../models/Users.js";
 import bcrypt from "bcrypt";
 import jwt    from "jsonwebtoken";
+import constants from "../config/constants.js";
 
 // ── Inscription ──────────────────────────────────────────
 export const register = async (req, res) => {
   try {
-    const { nom, prenom, email, password, role } = req.body;
+    const { nom, prenom, email, password, role, specialite } = req.body;
 
-    if (!nom || !prenom || !email || !password || !role) {
+    if (!nom || !prenom || !email || !password || !role || !specialite) {
       return res.status(400).json({
         message: "Tous les champs sont obligatoires"
       });
@@ -20,7 +21,7 @@ export const register = async (req, res) => {
 
     const hash = await bcrypt.hash(password, 10);
 
-    const user = await User.create({ nom, prenom, email, password: hash, role });
+    const user = await User.create({ nom, prenom, email, password: hash, role, specialite });
 
     return res.status(201).json({
       message: "Utilisateur bien inscrit",
@@ -30,6 +31,7 @@ export const register = async (req, res) => {
         prenom: user.prenom,
         email:  user.email,
         role:   user.role,
+        specialite: user.specialite,
       }
     });
 
@@ -54,11 +56,18 @@ export const login = async (req, res) => {
       return res.status(401).json({ message: "Mot de passe incorrect" });
     }
 
+    // const token = jwt.sign(
+    //   { id: user.id, role: user.role },
+    //   "SECRET_KEY",
+    //   { expiresIn: "1d" }
+    // );
+
     const token = jwt.sign(
       { id: user.id, role: user.role },
-      "SECRET_KEY",
-      { expiresIn: "1d" }
+      constants.JWT_SECRET,        // ← même clé que verifyToken
+      { expiresIn: constants.JWT_EXPIRES_IN }
     );
+  
 
     // ✅ Construire l'URL complète de la photo si elle existe
     const photoUrl = user.photoProfil
@@ -73,6 +82,7 @@ export const login = async (req, res) => {
         nom:         user.nom,        // ✅ corrigé
         prenom:      user.prenom,
         role:        user.role,
+        specialite : user.specialite,
         photoProfil: photoUrl,        // ✅ ajouté
       }
     });

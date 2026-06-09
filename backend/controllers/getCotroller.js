@@ -79,7 +79,7 @@ export const getPatients = async (req, res) => {
   export const getMedecin = async (req, res) => {
     try {
       const medecin = await User.findAll({
-        attributes: ["id", "prenom", "nom"], 
+        attributes: ["id", "prenom", "nom", "specialite"], 
         where: {
           role: "medecin", 
         },
@@ -1022,5 +1022,21 @@ export const getCommandesRecentes = async (req, res) => {
   } catch (error) {
     console.error("Erreur getCommandesRecentes:", error);
     res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+
+export const getUsersByRole = async (req, res) => {
+  try {
+    const users = await User.findAll({
+      attributes: ["id", "prenom", "nom"],
+      order: [["prenom", "ASC"]],
+    });
+
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({
+      message: "Erreur serveur",
+      error: error.message,
+    });
   }
 };

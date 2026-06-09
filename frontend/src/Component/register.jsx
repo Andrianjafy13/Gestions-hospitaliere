@@ -6,6 +6,35 @@ import hospitalIcon from "../assets/icons.png"; // chemin relatif vers ton image
 export default function Register() {
   const navigate = useNavigate();
 
+  const SPECIALITES = {
+    medecin: [
+      "Cardiologie", "Neurologie", "Pédiatrie", "Gynécologie",
+      "Chirurgie générale", "Dermatologie", "Ophtalmologie",
+      "Orthopédie", "Oncologie", "Psychiatrie",
+      "Médecine interne", "Urgentiste", "Anesthésiologie", "ORL"
+    ],
+    infirmier: [
+      "Soins intensifs", "Bloc opératoire", "Pédiatrie",
+      "Maternité", "Urgences", "Cardiologie",
+      "Oncologie", "Gériatrie", "Psychiatrie", "Soins palliatifs"
+    ],
+    receptionniste: [
+      "Accueil général", "Urgences", "Consultations externes",
+      "Chirurgie", "Maternité"
+    ],
+    pharmacien: [
+      "Pharmacie hospitalière", "Oncologie", "Pharmacovigilance",
+      "Stérilisation", "Préparations magistrales"
+    ],
+    laboratoire: [
+      "Biologie médicale", "Imagerie médicale", "Radiologie",
+      "Anatomopathologie", "Microbiologie", "Hématologie"
+    ],
+    accuiel: [
+      "Accueil principal", "Orientation patients", "Renseignements"
+    ],
+  };
+
   const [form, setForm] = useState({
     nom: "",
     prenom: "",
@@ -14,8 +43,20 @@ export default function Register() {
     password: "",
   });
 
-  const handleChange = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
+  // const handleChange = (e) =>
+
+    // setForm({ ...form, [e.target.name]: e.target.value });
+
+    const handleChange = (e) => {
+      const { name, value } = e.target;
+  
+      // Si on change le rôle, on remet la spécialité à vide
+      if (name === "role") {
+        setForm((prev) => ({ ...prev, role: value, specialite: "" }));
+      } else {
+        setForm((prev) => ({ ...prev, [name]: value }));
+      }
+    };
 
     const handleSubmit = async (e) => {
       e.preventDefault();
@@ -49,6 +90,8 @@ export default function Register() {
         console.log("Erreur:", error);
       }
     };
+
+    const specialitesDuRole = SPECIALITES[form.role] || [];
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -119,6 +162,22 @@ export default function Register() {
           <option value="laboratoire">Laboratoire / Imagerie</option>
           <option value="accuiel">Accuiel</option>
         </select>
+
+        {/* Spécialité — s'affiche uniquement si le rôle est sélectionné */}
+      {form.role && specialitesDuRole.length > 0 && (
+        <select
+          name="specialite"
+          value={form.specialite}
+          className="w-full mt-4 p-3 border rounded-lg"
+          onChange={handleChange}
+          required
+        >
+          <option value="">Sélectionner une spécialité</option>
+          {specialitesDuRole.map((s) => (
+            <option key={s} value={s}>{s}</option>
+          ))}
+        </select>
+      )}
 
         {/* <input
           type="text"

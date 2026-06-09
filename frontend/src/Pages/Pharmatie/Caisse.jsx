@@ -444,7 +444,7 @@ export default function Caisse() {
                   <p style={{ fontSize: "11px", color: "#94a3b8", margin: 0, marginTop: "2px" }}>Gestion Médicale Intégrée</p>
                 </div>
               </div>
-              <p style={{ fontSize: "12px", color: "#64748b", margin: 0 }}>Antananarivo, Madagascar</p>
+              <p style={{ fontSize: "12px", color: "#64748b", margin: 0 }}>Antsirabe 110, Madagascar</p>
             </div>
             <div style={{ textAlign: "right" }}>
               <p style={{ fontFamily: "'Playfair Display', serif", fontSize: "28px", fontWeight: 700, color: "white", margin: 0, letterSpacing: "-0.5px" }}>FACTURE</p>
