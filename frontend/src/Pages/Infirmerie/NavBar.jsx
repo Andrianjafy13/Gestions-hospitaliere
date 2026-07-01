@@ -5,11 +5,12 @@ import {
 } from "lucide-react";
 
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import hospitalIcon from "../../assets/icons.png";
 import { ChatIcon } from "../ComponentsMessage/ChatIcon";
 import { useProfil } from "../hook/useProfil";
 import { AvatarProfil } from "../profit/AvatarProfil";
+import { logout } from "../../utils/auth";
 
 export default function NavBarInf() {
   return (
@@ -23,6 +24,7 @@ export default function NavBarInf() {
 function Sidebar() {
   const [mobileOuvert, setMobileOuvert] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => { setMobileOuvert(false); }, [location.pathname]);
 
@@ -85,9 +87,15 @@ function Sidebar() {
             active={location.pathname.includes("settings")} />
         </Link>
 
-        <Link to="/" onClick={() => setMobileOuvert(false)}>
+        <button
+          type="button"
+          onClick={() => {
+            setMobileOuvert(false);
+            logout(navigate);
+          }}
+          className="w-full text-left">
           <MenuItem icon={<Share size={18} />} label="Déconnexion" />
-        </Link>
+        </button>
       </nav>
     </div>
   );

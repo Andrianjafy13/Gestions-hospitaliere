@@ -49,6 +49,7 @@ const Patients = sequelize.define("Patients", {
   observation: {
     type: DataTypes.TEXT
   },
+  
 
   // 🔥 NOUVEAU
   chambreId: {

@@ -39,6 +39,7 @@ import ModifierPatient    from "./Pages/Medicin/ModifierPatient";
 import { ModalConfirmation } from "./Pages/confirmationSup/ModalConfirmation";
 import AjoutChambre       from "./Pages/Accuiel/GestionChambre";
 import DashboardInfirmerie      from "./Pages/Infirmerie/DashboardInfirmerie";
+import StatistiquesInfirmerie   from "./Pages/Infirmerie/StatistiquesInfirmerie";
 import DashboardReceptionniste  from "./Pages/receptionniste/DashboardReceptionniste";
 import DashboardPharmacie       from "./Pages/Pharmatie/DashboardPharmacie";
 import { AjoutSuivi }           from "./Pages/Infirmerie/SuiviPatient";
@@ -52,11 +53,15 @@ import TeleconsultationPage from "./Pages/Call/TeleconsultationPage";
 import PatientCall from "./Pages/Medicin/CallPatient";
 import MedecinPage from "./Pages/Medicin/CallPatient";
 import HopitalPortail from "./Pages/Public/PublicInterface";
+import { AjoutSuivie } from "./Pages/Infirmerie/AjoutSuivi";
+import { ThemeToggle } from "./theme/ThemeToggle";
 
 
 export default function App() {
   // ✅ Plus de useState ici — chaque PageChat gère son propre état local
   return (
+    <>
+    <ThemeToggle className="fixed bottom-5 right-5 z-[80]" />
     <Routes>
 
       {/* ── Connexion / Inscription ── */}
@@ -156,7 +161,11 @@ export default function App() {
       }/>
 
       <Route path="/infirmerie/surveillencePatient" element={
-        <InfirmeLayout><AjoutSuivi /></InfirmeLayout>
+        <InfirmeLayout><AjoutSuivie /></InfirmeLayout>
+      }/>
+
+      <Route path="/infirmerie/statistiques" element={
+        <InfirmeLayout><StatistiquesInfirmerie /></InfirmeLayout>
       }/>
 
       <Route path="/infirmier/modifier/garde/:id" element={
@@ -263,5 +272,6 @@ export default function App() {
       <Route path="/Loboratoire" element={<NavBarLabo />} />
 
     </Routes>
+    </>
   );
 }

@@ -635,6 +635,139 @@ export const getSuivisPatient = async (req, res) => {
 };
 
 // ✅ Compter médicaments + alertes rupture de stock
+export const getStatsPatientsAssignesJour = async (req, res) => {
+  try {
+    const getDateKey = (value) => {
+      if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}/.test(value)) {
+        return value.slice(0, 10);
+      }
+
+      const date = new Date(value);
+      const month = `${date.getMonth() + 1}`.padStart(2, "0");
+      const day = `${date.getDate()}`.padStart(2, "0");
+      return `${date.getFullYear()}-${month}-${day}`;
+    };
+
+    const joursDemandes = parseInt(req.query.jours, 10);
+    const nombreJours = Number.isNaN(joursDemandes)
+      ? 14
+      : Math.min(Math.max(joursDemandes, 7), 60);
+
+    const fin = new Date();
+    fin.setHours(23, 59, 59, 999);
+
+    const debut = new Date(fin);
+    debut.setDate(fin.getDate() - (nombreJours - 1));
+    debut.setHours(0, 0, 0, 0);
+
+    const filtrePatientsAssignes = {
+      typePatient: {
+        [Op.in]: ["Hospitalisé", "Urgence"],
+      },
+    };
+
+    const lignesParJour = await Patients.findAll({
+      attributes: [
+        [Sequelize.fn("DATE", Sequelize.col("createdAt")), "date"],
+        [Sequelize.fn("COUNT", Sequelize.col("id")), "total"],
+      ],
+      where: {
+        ...filtrePatientsAssignes,
+        createdAt: {
+          [Op.between]: [debut, fin],
+        },
+      },
+      group: [Sequelize.fn("DATE", Sequelize.col("createdAt"))],
+      order: [[Sequelize.fn("DATE", Sequelize.col("createdAt")), "ASC"]],
+      raw: true,
+    });
+
+    const compteurParDate = new Map(
+      lignesParJour.map((ligne) => [
+        getDateKey(ligne.date),
+        parseInt(ligne.total, 10) || 0,
+      ])
+    );
+
+    const statsParJour = [];
+    for (let index = 0; index < nombreJours; index += 1) {
+      const date = new Date(debut);
+      date.setDate(debut.getDate() + index);
+      const isoDate = getDateKey(date);
+
+      statsParJour.push({
+        date: isoDate,
+        label: date.toLocaleDateString("fr-FR", {
+          day: "2-digit",
+          month: "short",
+        }),
+        total: compteurParDate.get(isoDate) || 0,
+      });
+    }
+
+    const debutJour = new Date();
+    debutJour.setHours(0, 0, 0, 0);
+
+    const finJour = new Date();
+    finJour.setHours(23, 59, 59, 999);
+
+    const [
+      totalAssignes,
+      totalHospitalises,
+      totalUrgences,
+      assignesAujourdhui,
+      patientsRecents,
+    ] = await Promise.all([
+      Patients.count({ where: filtrePatientsAssignes }),
+      Patients.count({ where: { typePatient: "Hospitalisé" } }),
+      Patients.count({ where: { typePatient: "Urgence" } }),
+      Patients.count({
+        where: {
+          ...filtrePatientsAssignes,
+          createdAt: { [Op.between]: [debutJour, finJour] },
+        },
+      }),
+      Patients.findAll({
+        where: filtrePatientsAssignes,
+        attributes: ["id", "nom", "prenom", "typePatient", "createdAt"],
+        include: [
+          {
+            model: Chambre,
+            as: "chambre",
+            attributes: ["numero"],
+            required: false,
+          },
+          {
+            model: User,
+            as: "medecin",
+            attributes: ["nom", "prenom"],
+            required: false,
+          },
+        ],
+        order: [["createdAt", "DESC"]],
+        limit: 6,
+      }),
+    ]);
+
+    res.json({
+      resume: {
+        totalAssignes,
+        totalHospitalises,
+        totalUrgences,
+        assignesAujourdhui,
+      },
+      parJour: statsParJour,
+      patientsRecents,
+    });
+  } catch (error) {
+    console.error("Erreur getStatsPatientsAssignesJour:", error);
+    res.status(500).json({
+      message: "Erreur serveur",
+      detail: error.message,
+    });
+  }
+};
+
 export const getCountMedicament = async (req, res) => {
   try {
 

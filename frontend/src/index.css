@@ -1,5 +1,70 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 body {
-  @apply bg-gray-100;
+  @apply bg-gray-100 text-slate-900 transition-colors duration-200;
+}
+
+.dark body {
+  @apply bg-slate-950 text-slate-100;
+}
+
+.dark :where(.bg-gray-50, .bg-gray-100, .bg-slate-50, .bg-slate-100) {
+  @apply bg-slate-950;
+}
+
+.dark :where(.bg-white, .bg-white\/90) {
+  @apply bg-slate-900;
+}
+
+.dark :where(.bg-white\/80, .bg-white\/70, .bg-white\/60) {
+  @apply bg-slate-900/90;
+}
+
+.dark :where(.bg-blue-900) {
+  @apply bg-slate-950;
+}
+
+.dark :where(.text-gray-900, .text-gray-800, .text-gray-700, .text-slate-900, .text-slate-800, .text-slate-700) {
+  @apply text-slate-100;
+}
+
+.dark :where(.text-gray-600, .text-gray-500, .text-slate-600, .text-slate-500) {
+  @apply text-slate-300;
+}
+
+.dark :where(.text-gray-400, .text-slate-400) {
+  @apply text-slate-400;
+}
+
+.dark :where(.border-gray-100, .border-gray-200, .border-gray-300, .border-slate-100, .border-slate-200, .border-slate-300) {
+  @apply border-slate-700;
+}
+
+.dark :where(.shadow, .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl) {
+  --tw-shadow-color: rgb(0 0 0 / 0.45);
+}
+
+.dark :where(input, select, textarea) {
+  @apply border-slate-700 bg-slate-900 text-slate-100 placeholder:text-slate-500;
+}
+
+.dark :where(table) {
+  @apply text-slate-100;
+}
+
+.dark :where(thead, .bg-gray-200, .bg-slate-200) {
+  @apply bg-slate-800;
+}
+
+.dark :where(tbody tr, .divide-gray-200 > :not([hidden]) ~ :not([hidden]), .divide-slate-200 > :not([hidden]) ~ :not([hidden])) {
+  @apply border-slate-700;
+}
+
+.dark :where(.hover\:bg-gray-100:hover, .hover\:bg-slate-100:hover) {
+  @apply bg-slate-800;
+}
+
+.dark .theme-toggle {
+  box-shadow: 0 10px 24px rgb(0 0 0 / 0.32);
 }

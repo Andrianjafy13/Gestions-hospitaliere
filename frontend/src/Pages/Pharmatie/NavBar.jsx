@@ -11,6 +11,7 @@ import { useNotifPharmacie } from "./hooks/useNotifPharmacie";
 import { ChatIcon } from "../ComponentsMessage/ChatIcon";
 import { useProfil } from "../hook/useProfil";
 import { AvatarProfil } from "../profit/AvatarProfil";
+import { logout } from "../../utils/auth";
 
 export default function NavBarPharm() {
   return (
@@ -107,9 +108,15 @@ function Sidebar() {
             active={location.pathname.includes("settings")} />
         </Link>
 
-        <Link to="/" onClick={() => setMobileOuvert(false)}>
+        <button
+          type="button"
+          onClick={() => {
+            setMobileOuvert(false);
+            logout(navigate);
+          }}
+          className="w-full text-left">
           <MenuItem icon={<Share size={18} />} label="Déconnexion" />
-        </Link>
+        </button>
       </nav>
     </div>
   );

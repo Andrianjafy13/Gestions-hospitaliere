@@ -11,6 +11,7 @@ import { useState, useEffect, useCallback } from "react";
 import { ChatIcon } from "../ComponentsMessage/ChatIcon";
 import { useProfil } from "../hook/useProfil";
 import { AvatarProfil } from "../profit/AvatarProfil";
+import { logout } from "../../utils/auth";
 
 export default function NavBarMed() {
   return (
@@ -202,9 +203,15 @@ function Sidebar() {
           />
         </Link>
 
-        <Link to="/" onClick={() => setMobileOuvert(false)}>
+        <button
+          type="button"
+          onClick={() => {
+            setMobileOuvert(false);
+            logout(navigate);
+          }}
+          className="w-full text-left">
           <MenuItem icon={<Share size={18} />} label="Déconnexion" />
-        </Link>
+        </button>
       </nav>
     </div>
   );

@@ -15,6 +15,7 @@ import routePut      from "./routes/routePut.js";
 import routeDelete   from "./routes/routeDelete.js";
 import publicRoutes   from "./routes/publicRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
+import analyseRoutes from "./routes/analyseRoutes.js"
 import Message       from "./models/Message.js";
 import { initIO }    from "./socket.js";
 import { demarrerCronExpiration } from "./jobs/expirationCron.js";
@@ -43,6 +44,7 @@ app.use("/api/DELETE",    routeDelete);
 app.use("/api/message",   messageRoutes);
 app.use("/api/rooms",     roomRoutes);
 app.use("/api/public", publicRoutes);
+app.use("/api/analyse", analyseRoutes);
 
 /* ── Map userId → socketId ── */
 const utilisateursConnectes = {};

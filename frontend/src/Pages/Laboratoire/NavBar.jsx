@@ -13,8 +13,9 @@ import {
   UserRoundPen
 } from "lucide-react";
 
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import hospitalIcon from "../../assets/icons.png";
+import { logout } from "../../utils/auth";
 
 export default function NavBarLabo() {
   return (
@@ -30,6 +31,8 @@ export default function NavBarLabo() {
 ========================= */
 
 function Sidebar() {
+  const navigate = useNavigate();
+
   return (
     <aside className="hidden lg:flex w-64 flex-col bg-blue-900 text-gray-200 fixed inset-y-0 left-0 shadow-lg">
 
