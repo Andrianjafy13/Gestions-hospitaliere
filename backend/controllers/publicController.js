@@ -1,6 +1,8 @@
 import { Op } from "sequelize";
 import sequelize from "../config/database.js";
 import User from "../models/Users.js";
+import Message from "../models/Message.js";
+import { getIO } from "../socket.js";
 
 /**
  * GET /api/public/statsPublic
@@ -126,7 +128,9 @@ export const getAnnuaire = async (req, res) => {
         "id",
         "nom",
         "prenom",
+        "email",
         "role",
+        "specialite",
         "photoProfil",
       ],
       where,
@@ -179,7 +183,9 @@ export const getProfessionnelById = async (req, res) => {
         "id",
         "nom",
         "prenom",
+        "email",
         "role",
+        "specialite",
         "photoProfil",
       ],
       where: {
@@ -266,6 +272,92 @@ export const callProfessionnel = async (req, res) => {
     console.error(error);
 
     res.status(500).json({
+      success: false,
+      message: "Erreur serveur",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * POST /api/public/annuaire/:id/message
+ */
+export const envoyerMessageReceptionniste = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nom, telephone, message } = req.body;
+
+    const nomVisiteur = String(nom || "").trim();
+    const telephoneVisiteur = String(telephone || "").trim();
+    const contenuMessage = String(message || "").trim();
+
+    if (!nomVisiteur || !telephoneVisiteur || !contenuMessage) {
+      return res.status(400).json({
+        success: false,
+        message: "Nom, téléphone et message sont obligatoires.",
+      });
+    }
+
+    const receptionniste = await User.findOne({
+      where: {
+        id,
+        role: "receptionniste",
+      },
+      attributes: ["id", "nom", "prenom", "role"],
+    });
+
+    if (!receptionniste) {
+      return res.status(404).json({
+        success: false,
+        message: "Réceptionniste introuvable.",
+      });
+    }
+
+    const contenu = [
+      `Message public de ${nomVisiteur}`,
+      `Téléphone : ${telephoneVisiteur}`,
+      "",
+      contenuMessage,
+    ].join("\n");
+
+    const publicMessage = await Message.create({
+      expediteurId: null,
+      destinataireId: receptionniste.id,
+      contenu,
+      lu: false,
+    });
+
+    const payload = {
+      id: publicMessage.id,
+      contenu: publicMessage.contenu,
+      expediteurId: null,
+      destinataireId: receptionniste.id,
+      createdAt: publicMessage.createdAt,
+      lu: false,
+      modifie: false,
+      supprime: false,
+      source: "public",
+      visiteur: {
+        nom: nomVisiteur,
+        telephone: telephoneVisiteur,
+      },
+    };
+
+    try {
+      getIO().to(`user_${receptionniste.id}`).emit("nouveauMessage", payload);
+    } catch (socketError) {
+      console.warn("Notification socket public non envoyée:", socketError.message);
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: "Message envoyé à la réceptionniste.",
+      data: payload,
+    });
+  } catch (error) {
+    console.error("envoyerMessageReceptionniste:", error);
+
+    return res.status(500).json({
       success: false,
       message: "Erreur serveur",
       error: error.message,

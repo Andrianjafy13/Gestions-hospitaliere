@@ -12,6 +12,8 @@ import { ChatIcon } from "../ComponentsMessage/ChatIcon";
 import { useProfil } from "../hook/useProfil";
 import { AvatarProfil } from "../profit/AvatarProfil";
 import { logout } from "../../utils/auth";
+import { useLanguage } from "../../i18n/LanguageContext";
+import { LanguageSelector } from "../../i18n/LanguageSelector";
 
 export default function NavBarMed() {
   return (
@@ -76,6 +78,7 @@ export function BadgeNotification({ count }) {
    SIDEBAR
 ========================= */
 function Sidebar() {
+  const { t } = useLanguage();
   const medecinId           = localStorage.getItem("medecinId");
   const { nonVus, marquerVus } = useNotification(medecinId);
   const navigate            = useNavigate();
@@ -110,12 +113,12 @@ function Sidebar() {
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-teal-500 rounded-xl flex items-center
             justify-center flex-shrink-0">
-            <img src={hospitalIcon} alt="Hospital"
+            <img src={hospitalIcon} alt={t("app.hospitalAlt")}
               className="mt-3 w-8 h-8 mb-4" />
           </div>
           <div>
             <span className="font-bold text-white text-sm">HospitalMada</span>
-            <p className="text-xs text-gray-300 -mt-0.5">Espace Médecin</p>
+            <p className="text-xs text-gray-300 -mt-0.5">{t("nav.medicalArea")}</p>
           </div>
         </div>
 
@@ -134,7 +137,7 @@ function Sidebar() {
         <Link to="/medecin" onClick={() => setMobileOuvert(false)}>
           <MenuItem
             icon={<LayoutDashboard size={18} />}
-            label="Dashboard"
+            label={t("common.dashboard")}
             active={location.pathname === "/medecin"}
           />
         </Link>
@@ -147,7 +150,7 @@ function Sidebar() {
               ? "bg-teal-600 text-white"
               : "text-gray-300 hover:bg-slate-800"}`}>
             <ClipboardList size={18} />
-            <span className="text-sm">Rendez-vous</span>
+            <span className="text-sm">{t("nav.rendezvous")}</span>
             {nonVus > 0 && (
               <span className="ml-auto bg-red-500 text-white text-xs font-medium
                 rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
@@ -171,7 +174,7 @@ function Sidebar() {
           onClick={() => setMobileOuvert(false)}>
           <MenuItem
             icon={<BookOpenCheck size={18} />}
-            label="Dossiers médicaux"
+            label={t("nav.files")}
             active={location.pathname.includes("Historique")}
           />
         </Link>
@@ -180,7 +183,7 @@ function Sidebar() {
           onClick={() => setMobileOuvert(false)}>
           <MenuItem
             icon={<BarChart3 size={18} />}
-            label="Statistiques"
+            label={t("common.statistics")}
             active={location.pathname.includes("statistiques")}
           />
         </Link>
@@ -189,7 +192,7 @@ function Sidebar() {
           onClick={() => setMobileOuvert(false)}>
           <MenuItem
             icon={<Phone size={18} />}
-            label="Appel"
+            label={t("nav.call")}
             active={location.pathname.includes("appel")}
           />
         </Link>
@@ -198,7 +201,7 @@ function Sidebar() {
           onClick={() => setMobileOuvert(false)}>
           <MenuItem
             icon={<Settings size={18} />}
-            label="Paramètres"
+            label={t("common.settings")}
             active={location.pathname.includes("settings")}
           />
         </Link>
@@ -210,7 +213,7 @@ function Sidebar() {
             logout(navigate);
           }}
           className="w-full text-left">
-          <MenuItem icon={<Share size={18} />} label="Déconnexion" />
+          <MenuItem icon={<Share size={18} />} label={t("common.logout")} />
         </button>
       </nav>
     </div>
@@ -245,7 +248,7 @@ function Sidebar() {
         className="fixed top-4 left-4 z-30 lg:hidden
           bg-blue-900 text-white p-2 rounded-xl shadow-lg
           hover:bg-blue-800 transition-colors"
-        aria-label="Ouvrir le menu"
+        aria-label={t("app.openMenu")}
       >
         <Menu size={20} />
       </button>
@@ -257,6 +260,7 @@ function Sidebar() {
    PATIENTS MENU DÉROULANT
 ========================= */
 function PatientsMenu({ active, onNavigate }) {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
 
   // ✅ Ouvrir automatiquement si on est sur une route patients
@@ -274,7 +278,7 @@ function PatientsMenu({ active, onNavigate }) {
       >
         <div className="flex items-center gap-3">
           <Users size={18} />
-          <span className="text-sm">Patients</span>
+          <span className="text-sm">{t("nav.patients")}</span>
         </div>
         {open ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
       </div>
@@ -284,10 +288,10 @@ function PatientsMenu({ active, onNavigate }) {
         ${open ? "max-h-40 opacity-100" : "max-h-0 opacity-0"}`}>
         <div className="flex flex-col ml-6 mt-1 space-y-1">
           <Link to="/medecin/patients/creer" onClick={onNavigate}>
-            <SousMenuItem label="Ajout Patient" />
+            <SousMenuItem label={t("nav.patientsAdd")} />
           </Link>
           <Link to="/medecin/patients/liste des patients" onClick={onNavigate}>
-            <SousMenuItem label="Liste Patients" />
+            <SousMenuItem label={t("nav.patientsList")} />
           </Link>
         </div>
       </div>
@@ -299,6 +303,7 @@ function PatientsMenu({ active, onNavigate }) {
    CONSULTATION MENU DÉROULANT
 ========================= */
 function ConsultationMenu({ active, onNavigate }) {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
 
   useEffect(() => { if (active) setOpen(true); }, [active]);
@@ -315,7 +320,7 @@ function ConsultationMenu({ active, onNavigate }) {
       >
         <div className="flex items-center gap-3">
           <Stethoscope size={18} />
-          <span className="text-sm">Consultation</span>
+          <span className="text-sm">{t("nav.consultation")}</span>
         </div>
         {open ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
       </div>
@@ -324,10 +329,10 @@ function ConsultationMenu({ active, onNavigate }) {
         ${open ? "max-h-40 opacity-100" : "max-h-0 opacity-0"}`}>
         <div className="flex flex-col ml-6 mt-1 space-y-1">
           <Link to="/medecin/consultation/Créer" onClick={onNavigate}>
-            <SousMenuItem label="Créer Consultation" />
+            <SousMenuItem label={t("nav.createConsultation")} />
           </Link>
           <Link to="/medecin/consultation/Liste_Consultations" onClick={onNavigate}>
-            <SousMenuItem label="Liste Consultations" />
+            <SousMenuItem label={t("nav.consultations")} />
           </Link>
         </div>
       </div>
@@ -339,6 +344,7 @@ function ConsultationMenu({ active, onNavigate }) {
    TOPBAR
 ========================= */
 function Topbar() {
+  const { t } = useLanguage();
   // ✅ Hook qui charge le profil depuis le backend au montage
   const { profil, mettreAJourPhoto } = useProfil();
 
@@ -348,7 +354,7 @@ function Topbar() {
       px-6 lg:ml-64 shadow-sm pl-16 lg:pl-6">
 
       <h1 className="text-lg font-semibold text-gray-700 truncate">
-        Tableau de bord Medecin
+        {t("topbar.doctorDashboard")}
       </h1>
 
       <div className="flex items-center gap-4 flex-shrink-0">
@@ -365,6 +371,8 @@ function Topbar() {
             {profil.specialite}
           </span>
         </div>
+
+        <LanguageSelector />
 
         {/* ✅ Avatar interactif — photo depuis BDD */}
         <AvatarProfil
@@ -420,9 +428,10 @@ function SousMenuItem({ label }) {
    QUICK ACTIONS
 ========================= */
 export function QuickActions() {
+  const { t } = useLanguage();
   const actions = [
-    "Nouveau patient", "Nouvelle consultation",
-    "Planifier rendez-vous", "Créer dossier médical", "Prescrire examen",
+    t("nav.newPatient"), t("nav.newConsultation"),
+    t("nav.planAppointment"), t("nav.createMedicalFile"), t("nav.prescribeExam"),
   ];
   return (
     <div className="bg-teal-500 p-4 rounded-xl flex gap-3 flex-wrap text-white">

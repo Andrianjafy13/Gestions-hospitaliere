@@ -197,6 +197,107 @@ function CallModal({ pro, onClose, onConfirm }) {
 // ═══════════════════════════════════════════════════════════════
 // SECTION 1 : HERO
 // ═══════════════════════════════════════════════════════════════
+function MessageModal({ pro, onClose, onSubmit, sending }) {
+  const [form, setForm] = useState({ nom: "", telephone: "", message: "" });
+
+  if (!pro) return null;
+
+  const fullName = `${pro.prenom || ""} ${pro.nom || ""}`.trim();
+  const canSend = form.nom.trim() && form.telephone.trim() && form.message.trim() && !sending;
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (canSend) onSubmit(form);
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-5 bg-black/55 backdrop-blur-sm"
+      onClick={(e) => { if (e.target === e.currentTarget && !sending) onClose(); }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="message-modal-title"
+    >
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white rounded-2xl p-7 max-w-md w-full shadow-2xl animate-[modalIn_0.2s_ease]"
+      >
+        <div className="mb-5">
+          <p className="text-xs font-semibold uppercase tracking-wide text-blue-500 mb-1">
+            Message au receptionniste
+          </p>
+          <h3 id="message-modal-title" className="text-lg font-semibold text-gray-900">
+            {fullName || "Receptionniste"}
+          </h3>
+          <p className="text-sm text-gray-500 mt-1">
+            Laissez vos coordonnees pour que la reception puisse vous recontacter.
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <label className="flex flex-col gap-1.5 text-sm font-semibold text-gray-700">
+            Nom du visiteur
+            <input
+              name="nom"
+              value={form.nom}
+              onChange={handleChange}
+              placeholder="Votre nom"
+              className="rounded-lg border border-gray-200 px-3 py-2.5 text-sm font-normal text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              autoFocus
+            />
+          </label>
+
+          <label className="flex flex-col gap-1.5 text-sm font-semibold text-gray-700">
+            Telephone
+            <input
+              name="telephone"
+              value={form.telephone}
+              onChange={handleChange}
+              placeholder="Votre numero de telephone"
+              className="rounded-lg border border-gray-200 px-3 py-2.5 text-sm font-normal text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            />
+          </label>
+
+          <label className="flex flex-col gap-1.5 text-sm font-semibold text-gray-700">
+            Message
+            <textarea
+              name="message"
+              value={form.message}
+              onChange={handleChange}
+              placeholder="Ecrivez votre message..."
+              rows={5}
+              className="resize-none rounded-lg border border-gray-200 px-3 py-2.5 text-sm font-normal text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            />
+          </label>
+        </div>
+
+        <div className="flex gap-3 mt-6">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={sending}
+            className="flex-1 py-3 bg-gray-100 text-gray-600 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors disabled:opacity-50"
+          >
+            Annuler
+          </button>
+          <button
+            type="submit"
+            disabled={!canSend}
+            className="flex-1 py-3 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {sending ? "Envoi..." : "Envoyer"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 function Hero({ stats, onNavigate }) {
   return (
     <section
@@ -252,41 +353,6 @@ function Hero({ stats, onNavigate }) {
   );
 }
 
-// ═══════════════════════════════════════════════════════════════
-// BANDEAU URGENCE
-// ═══════════════════════════════════════════════════════════════
-function UrgenceBanner({ addToast }) {
-  const callNumber = (num) => addToast(`Appel du ${num}…`, "success");
-
-  return (
-    <div className="bg-red-400 py-5 px-8" role="alert" aria-label="Numéros d'urgence">
-      <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-5">
-        <div className="flex items-center gap-3">
-          <div className="relative w-10 h-10 flex items-center justify-center bg-white/20 rounded-full">
-            <span className="absolute inset-0 rounded-full border-2 border-white/30 animate-ping" />
-            <span className="text-xl">🚨</span>
-          </div>
-          <p className="text-white font-semibold text-base">
-            En cas d'urgence médicale{" "}
-            <small className="block text-sm font-normal opacity-80">Appelez immédiatement l'urgence ou Voire les secours</small>
-          </p>
-        </div>
-        <div className="flex gap-3 flex-wrap">
-          {[["15", "SAMU"], ["18", "Pompiers"], ["112", "Urgences"]].map(([num, label]) => (
-            <button
-              key={num}
-              onClick={() => callNumber(num)}
-              aria-label={`Appeler le ${num}`}
-              className="flex items-center gap-2 px-4 py-2 bg-white/15 border border-white/40 text-white font-bold text-sm rounded-lg hover:bg-white/25 transition-colors"
-            >
-              📞 {num} — {label}
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ═══════════════════════════════════════════════════════════════
 // SECTION 2 : TABLEAU DE BORD
@@ -457,15 +523,24 @@ function SkeletonCard() {
 }
 
 // ─── ProfessionalCard ─────────────────────────────────────────
-function ProfessionalCard({ pro, onCall, onMessage }) {
+function ProfessionalCard({ pro, selected, onDetail, onMessage }) {
   const badge     = DISPO_BADGE[pro.disponibilite] || DISPO_BADGE.available;
-  const canCall   = pro.disponibilite === "available";
   const roleLabel = ROLE_LABELS[pro.role] || pro.role;
   const fullName  = `${pro.prenom || ""} ${pro.nom || ""}`.trim();
+  const canMessage = pro.role === "receptionniste";
+  const detailItems = [
+    { label: "Nom", value: pro.nom || "Non renseigné" },
+    { label: "Prénom", value: pro.prenom || "Non renseigné" },
+    { label: "Email", value: pro.email || "Email non renseigné" },
+    { label: "Rôle", value: roleLabel },
+    { label: "Spécialité", value: pro.specialite || "Non renseignée" },
+  ];
 
   return (
     <article
-      className="bg-white border border-gray-200 rounded-2xl p-6 flex flex-col gap-4 hover:shadow-md hover:-translate-y-0.5 transition-all"
+      className={`bg-white border rounded-2xl p-6 flex flex-col gap-4 hover:shadow-md hover:-translate-y-0.5 transition-all ${
+        selected ? "border-blue-500 ring-4 ring-blue-50 shadow-md" : "border-gray-200"
+      }`}
       role="listitem"
       aria-label={`${fullName}, ${roleLabel}, ${badge.label}`}
     >
@@ -495,15 +570,46 @@ function ProfessionalCard({ pro, onCall, onMessage }) {
         {pro.specialite || roleLabel}
       </div>
 
+      {selected && (
+        <div
+          className="rounded-xl border border-blue-100 bg-blue-50/60 p-4 animate-[fadeSlideIn_0.2s_ease]"
+          aria-label={`Informations détaillées de ${fullName}`}
+        >
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-blue-500">Profil sélectionné</p>
+              <p className="text-sm font-semibold text-gray-900">{fullName || "Professionnel"}</p>
+            </div>
+            <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-blue-700 border border-blue-100">
+              {roleLabel}
+            </span>
+          </div>
+
+          <dl className="grid grid-cols-1 gap-2">
+            {detailItems.map((item) => (
+              <div key={item.label} className="flex items-start justify-between gap-3 rounded-lg bg-white px-3 py-2 border border-blue-50">
+                <dt className="text-xs font-semibold text-gray-400">{item.label}</dt>
+                <dd className="text-xs font-semibold text-gray-800 text-right break-all">{item.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      )}
+
       {/* Actions */}
       <div className="flex gap-2 mt-1">
       <button
-        onClick={() => onCall(pro)}
-        aria-label={`Appeler ${fullName}`}
-        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-semibold transition-colors bg-blue-600 text-white hover:bg-blue-700"
+        onClick={() => onDetail(pro)}
+        aria-label={`Voir le détail de ${fullName}`}
+        className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-semibold transition-colors ${
+          selected
+            ? "bg-blue-50 text-blue-700 border border-blue-200"
+            : "bg-blue-600 text-white hover:bg-blue-700"
+        }`}
       >
-        📞 Appeler le service
+         {selected ? "Détail affiché" : "Détail"}
       </button>
+        {canMessage && (
         <button
           onClick={() => onMessage(pro)}
           aria-label={`Envoyer un message à ${fullName}`}
@@ -511,6 +617,7 @@ function ProfessionalCard({ pro, onCall, onMessage }) {
         >
           💬
         </button>
+        )}
       </div>
     </article>
   );
@@ -521,6 +628,9 @@ function Annuaire({ addToast, onCall }) {
   const [filter,          setFilter]          = useState("all");
   const [search,          setSearch]          = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [selectedProId,   setSelectedProId]   = useState(null);
+  const [messagePro,      setMessagePro]      = useState(null);
+  const [sendingMessage,  setSendingMessage]  = useState(false);
   const [page,            setPage]            = useState(1);
   const LIMIT = 20;
 
@@ -530,6 +640,9 @@ function Annuaire({ addToast, onCall }) {
   }, [search]);
 
   const handleFilterChange = (key) => { setFilter(key); setPage(1); };
+  const handleDetail = (pro) => {
+    setSelectedProId((currentId) => (currentId === pro.id ? null : pro.id));
+  };
 
   const { data: professionals, pagination, loading, error } = useAnnuaire({
     role:   filter,
@@ -539,9 +652,37 @@ function Annuaire({ addToast, onCall }) {
   });
 
   const handleCall    = (pro) => onCall?.(pro);
-  const handleMessage = (pro) => {
-    const fullName = `${pro.prenom || ""} ${pro.nom || ""}`.trim();
-    addToast?.(`Message envoyé à ${fullName}`, "success");
+  const handleMessage = (pro) => setMessagePro(pro);
+
+  const handleSubmitMessage = async (form) => {
+    if (!messagePro) return;
+
+    const fullName = `${messagePro.prenom || ""} ${messagePro.nom || ""}`.trim();
+    setSendingMessage(true);
+
+    try {
+      const res = await fetch(`${API_BASE}/annuaire/${messagePro.id}/message`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nom: form.nom,
+          telephone: form.telephone,
+          message: form.message,
+        }),
+      });
+      const json = await res.json();
+
+      if (!res.ok || !json.success) {
+        throw new Error(json.message || "Impossible d'envoyer le message.");
+      }
+
+      addToast?.(json.message || `Message envoye a ${fullName}`, "success");
+      setMessagePro(null);
+    } catch (err) {
+      addToast?.(err.message || "Erreur lors de l'envoi du message.", "error");
+    } finally {
+      setSendingMessage(false);
+    }
   };
 
   const FILTERS = [
@@ -627,6 +768,8 @@ function Annuaire({ addToast, onCall }) {
               <ProfessionalCard
                 key={pro.id}
                 pro={pro}
+                selected={selectedProId === pro.id}
+                onDetail={handleDetail}
                 onCall={handleCall}
                 onMessage={handleMessage}
               />
@@ -683,6 +826,15 @@ function Annuaire({ addToast, onCall }) {
             </button>
           </div>
         )}
+
+        {messagePro && (
+          <MessageModal
+            pro={messagePro}
+            sending={sendingMessage}
+            onClose={() => setMessagePro(null)}
+            onSubmit={handleSubmitMessage}
+          />
+        )}
       </div>
     </section>
   );
@@ -716,7 +868,6 @@ function Informations({ addToast }) {
     { num: "15",               label: "SAMU — Urgences médicales" },
     { num: "18",               label: "Pompiers — Secours"        },
     { num: "112",              label: "Numéro d'urgence"          },
-    { num: "+261 20 123 4567", label: "Standard de l'hôpital"     },
   ];
 
   return (
@@ -762,8 +913,7 @@ function Informations({ addToast }) {
 
             <InfoBlock icon="🏥" iconCls="bg-teal-50 text-teal-600" title="Services proposés">
               <p className="text-sm text-gray-700 leading-relaxed">
-                Médecine générale · Chirurgie · Pédiatrie · Cardiologie · Radiologie · Pharmacie ·
-                Laboratoire d'analyses · Kinésithérapie · Maternité · Soins intensifs
+                Médecine générale · Infirmerie · Receptionniste · Pharmacie ·
               </p>
             </InfoBlock>
 
@@ -831,7 +981,7 @@ const SECOURS = [
       { t: "Compressions",               d: "30 compressions au centre du thorax, profondeur 5–6 cm, rythme 100–120/min."    },
       { t: "Ventilation",                d: "2 insufflations (si formé). Sinon, continuez les compressions sans ventilation." },
     ],
-    warn: "Ne jamais arrêter le massage jusqu'à l'arrivée des secours ou la reprise d'une activité cardiaque.",
+    warn: "",
   },
   {
     icon: "🧑‍⚕️", iconCls: "bg-blue-600", title: "Position Latérale de Sécurité", sub: "Personne inconsciente qui respire", numCls: "bg-blue-600",
@@ -854,7 +1004,7 @@ const SECOURS = [
       { t: "Allongez la victime",   d: "Couchez-la et surélevez les membres si possible."                       },
       { t: "Maintenez la pression", d: "Sans jamais relâcher, jusqu'à l'arrivée des secours."                   },
     ],
-    warn: "Ne jamais retirer un objet planté. Compresser autour sans le mobiliser.",
+    warn: "",
   },
   {
     icon: "🔥", iconCls: "bg-teal-600", title: "Brûlure & Étouffement", sub: "Deux urgences fréquentes", numCls: "bg-teal-600",
@@ -951,8 +1101,8 @@ function Footer() {
           <div>
             <h4 className="text-xs font-semibold uppercase tracking-wide text-white/50 mb-4">Contact</h4>
             <ul className="flex flex-col gap-2 text-sm">
-              <li><a href="tel:+261201234567" className="hover:text-white transition-colors">+261 20 123 4567</a></li>
-              <li><a href="mailto:contact@hopital.mg" className="hover:text-white transition-colors">contact@hopital.mg</a></li>
+              <li><a href="tel:+261201234567" className="hover:text-white transition-colors"></a></li>
+              <li><a href="mailto:contact@hopitalMada.mg" className="hover:text-white transition-colors">contact@hopitalMada.mg</a></li>
               <li><a href="#annuaire" className="hover:text-white transition-colors">Prendre rendez-vous</a></li>
             </ul>
           </div>
@@ -1132,7 +1282,7 @@ export default function HopitalPortail() {
             stats={statsData || FALLBACK_STATS}
             onNavigate={navigateTo}
           />
-          <UrgenceBanner addToast={addToast} />
+          {/* <UrgenceBanner addToast={addToast} /> */}
           <Dashboard stats={statsData || FALLBACK_STATS} />
           {/* ✅ Annuaire appelé comme composant JSX normal */}
           <Annuaire addToast={addToast} onCall={handleCall} />

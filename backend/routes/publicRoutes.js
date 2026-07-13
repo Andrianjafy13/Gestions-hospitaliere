@@ -5,6 +5,7 @@ import {
   getAnnuaire,
   getProfessionnelById,
   callProfessionnel,
+  envoyerMessageReceptionniste,
 } from "../controllers/publicController.js";
 
 const router = express.Router();
@@ -25,5 +26,6 @@ router.get("/annuaire/:id", getProfessionnelById);
  * Appel
  */
 router.post("/annuaire/:id/call", callProfessionnel);
+router.post("/annuaire/:id/message", envoyerMessageReceptionniste);
 
 export default router;

@@ -2,8 +2,10 @@ import React, { useEffect, useState } from "react";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import { ModalConfirmation } from "../confirmationSup/ModalConfirmation";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "../../i18n/LanguageContext";
 
 export default function PatientTable() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [patients,       setPatients]       = useState([]);
   const [message,        setMessage]        = useState("");
@@ -14,12 +16,13 @@ export default function PatientTable() {
     // ✅ Fallback userId si medecinId absent
     const medecinId = localStorage.getItem("medecinId") || localStorage.getItem("userId");
     if (!medecinId) {
-      setMessage("Veuillez vous reconnecter !");
+      setMessage(t("patient.reconnect"));
       setLoading(false);
       return;
     }
     setLoading(true);
-    fetch(`http://localhost:5000/api/GET/Liste_patients/${medecinId}`)
+    // fetch(`http://localhost:5000/api/GET/Liste_patients/${medecinId}`)
+    fetch("http://localhost:5000/api/GET/Liste_patients")
       .then(res => res.json())
       .then(data => {
         if (data.message) setMessage(data.message);
@@ -50,7 +53,7 @@ export default function PatientTable() {
   return (
     <div className="max-w-full mx-auto mt-6 p-4 bg-white rounded-xl shadow-md border border-gray-200">
       <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-        Liste des patients
+        {t("patient.listTitle")}
       </h2>
 
       {message && (
@@ -58,21 +61,21 @@ export default function PatientTable() {
       )}
 
       {loading ? (
-        <p className="text-center text-gray-400 text-sm py-8">Chargement...</p>
+        <p className="text-center text-gray-400 text-sm py-8">{t("common.loading")}</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="py-2 text-left text-xs font-medium text-gray-500 uppercase">Nom</th>
-                <th className="py-2 text-left text-xs font-medium text-gray-500 uppercase">Prénom</th>
-                <th className="py-2 text-left text-xs font-medium text-gray-500 uppercase">Date de naissance</th>
-                <th className="py-2 text-center text-xs font-medium text-gray-500 uppercase">Sexe</th>
-                <th className="py-2 text-left text-xs font-medium text-gray-500 uppercase">Téléphone</th>
-                <th className="py-2 text-left text-xs font-medium text-gray-500 uppercase">Type patient</th>
-                <th className="py-2 text-left text-xs font-medium text-gray-500 uppercase">Groupe sanguin</th>
-                <th className="py-2 text-left text-xs font-medium text-gray-500 uppercase">Chambre</th>
-                <th className="py-2 text-center text-xs font-medium text-gray-500 uppercase">Actions</th>
+                <th className="py-2 text-left text-xs font-medium text-gray-500 uppercase">{t("patient.lastName")}</th>
+                <th className="py-2 text-left text-xs font-medium text-gray-500 uppercase">{t("patient.firstName")}</th>
+                <th className="py-2 text-left text-xs font-medium text-gray-500 uppercase">{t("patient.birthDate")}</th>
+                <th className="py-2 text-center text-xs font-medium text-gray-500 uppercase">{t("patient.sex")}</th>
+                <th className="py-2 text-left text-xs font-medium text-gray-500 uppercase">{t("patient.telephone")}</th>
+                <th className="py-2 text-left text-xs font-medium text-gray-500 uppercase">{t("patient.type")}</th>
+                <th className="py-2 text-left text-xs font-medium text-gray-500 uppercase">{t("patient.bloodGroup")}</th>
+                <th className="py-2 text-left text-xs font-medium text-gray-500 uppercase">{t("patient.room")}</th>
+                <th className="py-2 text-center text-xs font-medium text-gray-500 uppercase">{t("common.actions")}</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -95,13 +98,13 @@ export default function PatientTable() {
                       <button
                         onClick={() => handleModifier(patient)}
                         className="p-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600"
-                        title="Modifier">
+                        title={t("common.edit")}>
                         <FaEdit />
                       </button>
                       <button
                         onClick={() => setItemASupprimer(patient)}
                         className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-                        title="Supprimer">
+                        title={t("common.delete")}>
                         <FaTrash />
                       </button>
                     </td>
@@ -110,7 +113,7 @@ export default function PatientTable() {
               ) : (
                 <tr>
                   <td colSpan="9" className="text-center text-gray-400 text-sm py-8">
-                    Aucun patient trouvé
+                    {t("patient.noPatient")}
                   </td>
                 </tr>
               )}

@@ -34,6 +34,7 @@ const server = http.createServer(app);
 const io     = new Server(server, {
   cors: { origin: "http://localhost:5173", methods: ["GET","POST"] },
 });
+initIO(io);
 
 /* ── Routes ── */
 app.use("/api/auth",      authRoutes);
@@ -264,8 +265,6 @@ io.on("connection", (socket) => {
       console.log(`User ${userId} déconnecté`);
     }
   });
-
-  initIO(io);
 
   socket.on("rejoindre_pharmacie", () => {
     socket.join("pharmacie");

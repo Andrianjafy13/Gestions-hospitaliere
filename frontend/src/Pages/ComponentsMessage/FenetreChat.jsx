@@ -6,6 +6,7 @@ import { useSocket }                   from "../hook/useSocket";
 
 function labelContact(u) {
   if (!u) return "";
+  if (u.role === "public" || u.id === "public") return "Messages du public";
   if (u.role === "medecin")        return `Dr. ${u.prenom} ${u.nom}`;
   if (u.role === "infirmier")      return `Inf. ${u.prenom} ${u.nom}`;
   if (u.role === "pharmacien")     return `Pharma. ${u.prenom} ${u.nom}`;
@@ -31,13 +32,35 @@ export function FenetreChat() {
 
   const { socket, envoyerMessage } = useSocket();
   const finMessages                = useRef(null);
+  const estConversationPublic      = conversationAvec?.id === "public";
 
   // ✅ Charger contacts — exclut soi-même côté backend
   useEffect(() => {
     if (!userId) return;
-    fetch(`http://localhost:5000/api/message/utilisateurs/${userId}`)
-      .then(r => r.json())
-      .then(d => setContacts(Array.isArray(d) ? d : []))
+    Promise.all([
+      fetch(`http://localhost:5000/api/message/utilisateurs/${userId}`).then(r => r.json()),
+      fetch(`http://localhost:5000/api/message/conversations/${userId}`).then(r => r.json()),
+    ])
+      .then(([usersData, conversationsData]) => {
+        const users = Array.isArray(usersData) ? usersData : [];
+        const conversationContacts = Array.isArray(conversationsData)
+          ? conversationsData
+              .map((c) => ({
+                ...c.autreUtilisateur,
+                dernierMessage: c.dernierMessage,
+                nonLus: c.nonLus || 0,
+              }))
+              .filter(Boolean)
+          : [];
+
+        const merged = [...conversationContacts, ...users].reduce((acc, contact) => {
+          const key = `${contact.role}-${contact.id}`;
+          if (!acc.has(key)) acc.set(key, contact);
+          return acc;
+        }, new Map());
+
+        setContacts(Array.from(merged.values()));
+      })
       .catch(console.error);
   }, [userId]);
 
@@ -50,10 +73,16 @@ export function FenetreChat() {
       .then(d => {
         if (!Array.isArray(d)) return;
         // Double sécurité frontend
-        const filtres = d.filter(m =>
-          (m.expediteurId === moi && m.destinataireId === conversationAvec.id) ||
-          (m.expediteurId === conversationAvec.id && m.destinataireId === moi)
-        );
+        const filtres = d.filter(m => {
+          if (conversationAvec.id === "public") {
+            return m.expediteurId === null && m.destinataireId === moi;
+          }
+
+          return (
+            (m.expediteurId === moi && m.destinataireId === conversationAvec.id) ||
+            (m.expediteurId === conversationAvec.id && m.destinataireId === moi)
+          );
+        });
         setMessages(filtres);
       })
       .catch(console.error);
@@ -67,7 +96,11 @@ export function FenetreChat() {
       // Ignorer si pas pour moi
       if (msg.destinataireId !== moi) return;
       // Afficher seulement si je suis dans cette conversation
-      if (conversationAvec && msg.expediteurId === conversationAvec.id) {
+      if (
+        conversationAvec &&
+        (msg.expediteurId === conversationAvec.id ||
+          (conversationAvec.id === "public" && msg.expediteurId === null))
+      ) {
         setMessages(prev => {
           if (prev.some(m => m.id === msg.id)) return prev;
           return [...prev, msg];
@@ -127,7 +160,7 @@ export function FenetreChat() {
   }, [messages]);
 
   const handleEnvoyer = () => {
-    if (!texte.trim() || !conversationAvec) return;
+    if (!texte.trim() || !conversationAvec || estConversationPublic) return;
     envoyerMessage(conversationAvec.id, texte.trim());
     setTexte("");
   };
@@ -170,7 +203,7 @@ export function FenetreChat() {
   };
 
   const contactsFiltres = contacts.filter(u =>
-    `${u.prenom} ${u.nom}`.toLowerCase()
+    `${labelContact(u)} ${u.role || ""}`.toLowerCase()
       .includes(recherche.toLowerCase())
   );
 
@@ -222,7 +255,9 @@ export function FenetreChat() {
               <div className="w-9 h-9 rounded-full bg-teal-100 flex items-center
                 justify-center flex-shrink-0">
                 <span className="text-sm font-semibold text-teal-700">
-                  {u.prenom?.[0]?.toUpperCase()}{u.nom?.[0]?.toUpperCase()}
+                  {u.id === "public"
+                    ? "PU"
+                    : `${u.prenom?.[0]?.toUpperCase() || ""}${u.nom?.[0]?.toUpperCase() || ""}`}
                 </span>
               </div>
               <div className="min-w-0 flex-1">
@@ -231,6 +266,11 @@ export function FenetreChat() {
                 </p>
                 <p className="text-xs text-gray-500 capitalize">{u.role}</p>
               </div>
+              {u.nonLus > 0 && (
+                <span className="bg-red-500 text-white text-xs rounded-full min-w-5 h-5 px-1 flex items-center justify-center font-medium">
+                  {u.nonLus > 9 ? "9+" : u.nonLus}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -246,8 +286,9 @@ export function FenetreChat() {
               <div className="w-9 h-9 rounded-full bg-teal-100 flex items-center
                 justify-center flex-shrink-0">
                 <span className="text-sm font-semibold text-teal-700">
-                  {conversationAvec.prenom?.[0]?.toUpperCase()}
-                  {conversationAvec.nom?.[0]?.toUpperCase()}
+                  {conversationAvec.id === "public"
+                    ? "PU"
+                    : `${conversationAvec.prenom?.[0]?.toUpperCase() || ""}${conversationAvec.nom?.[0]?.toUpperCase() || ""}`}
                 </span>
               </div>
               <div>
@@ -296,7 +337,7 @@ export function FenetreChat() {
                   <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center
                     justify-center flex-shrink-0 mr-2 self-end mb-1">
                     <span className="text-xs font-medium text-gray-600">
-                      {conversationAvec?.prenom?.[0]?.toUpperCase()}
+                      {conversationAvec?.id === "public" ? "PU" : conversationAvec?.prenom?.[0]?.toUpperCase()}
                     </span>
                   </div>
                 )}
@@ -386,7 +427,7 @@ export function FenetreChat() {
           <div ref={finMessages} />
         </div>
 
-        {conversationAvec && (
+        {conversationAvec && !estConversationPublic && (
           <div className="bg-white border-t border-gray-200 px-6 py-4 flex gap-3">
             <input
               type="text"

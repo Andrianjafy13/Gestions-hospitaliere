@@ -4,7 +4,8 @@ import { getNonVus, marquerVus } from "../controllers/codeController.js";
 import { getProfil } from "../controllers/profilController.js";
 
 const router = express.Router();
-router.get("/Liste_patients/:medecinId", getListePatients);
+// router.get("/Liste_patients/:medecinId", getListePatients);
+router.get("/Liste_patients", getListePatients);
 router.get("/allPatients", getPatients);
 router.get("/allMedecin", getMedecin);
 router.get("/AllConsultations/:medecinId", getConsultations);

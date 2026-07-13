@@ -160,8 +160,12 @@ export default function App() {
         <InfirmeLayout><ListeGarde /></InfirmeLayout>
       }/>
 
-      <Route path="/infirmerie/surveillencePatient" element={
+      {/* <Route path="/infirmerie/surveillencePatient" element={
         <InfirmeLayout><AjoutSuivie /></InfirmeLayout>
+      }/> */}
+
+      <Route path="/infirmerie/surveillencePatient" element={
+        <InfirmeLayout><AjoutSuivi /></InfirmeLayout>
       }/>
 
       <Route path="/infirmerie/statistiques" element={

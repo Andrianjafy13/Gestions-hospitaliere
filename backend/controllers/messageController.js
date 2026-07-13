@@ -31,15 +31,17 @@ export const getMedecin = async (req, res) => {
 export const getConversation = async (req, res) => {
   try {
     const userId      = parseInt(req.params.userId);
-    const autreUserId = parseInt(req.params.autreUserId);
+    const autreParam = req.params.autreUserId;
+    const estPublic = autreParam === "public";
+    const autreUserId = parseInt(autreParam);
 
-    if (!userId || !autreUserId)
+    if (!userId || (!estPublic && !autreUserId))
       return res.status(400).json({ message: "Paramètres invalides" });
 
     // ✅ Sécurité — userId doit être l'un des deux participants
     // Un utilisateur ne peut voir QUE ses propres conversations
     const messages = await Message.findAll({
-      where: {
+      where: estPublic ? { expediteurId: null, destinataireId: userId } : {
         [Op.or]: [
           // ✅ Seulement les messages ENTRE userId ET autreUserId
           { expediteurId: userId,      destinataireId: autreUserId },
@@ -57,7 +59,11 @@ export const getConversation = async (req, res) => {
     await Message.update(
       { lu: true },
       {
-        where: {
+        where: estPublic ? {
+          destinataireId: userId,
+          expediteurId:   null,
+          lu:             false,
+        } : {
           destinataireId: userId,
           expediteurId:   autreUserId,
           lu:             false,
@@ -118,15 +124,20 @@ export const getConversations = async (req, res) => {
     const conversations = {};
 
     messages.forEach(m => {
-      const autreId = m.expediteurId === userId
-        ? m.destinataireId
-        : m.expediteurId;
+      const estPublic = m.expediteurId === null && m.destinataireId === userId;
+      const autreId = estPublic
+        ? "public"
+        : m.expediteurId === userId
+          ? m.destinataireId
+          : m.expediteurId;
 
       if (!conversations[autreId]) {
         conversations[autreId] = {
-          autreUtilisateur: m.expediteurId === userId
-            ? m.destinataire
-            : m.expediteur,
+          autreUtilisateur: estPublic
+            ? { id: "public", prenom: "Visiteur", nom: "public", role: "public" }
+            : m.expediteurId === userId
+              ? m.destinataire
+              : m.expediteur,
           dernierMessage: m.contenu,
           date:           m.createdAt,
           nonLus:         0,
@@ -136,11 +147,13 @@ export const getConversations = async (req, res) => {
 
     for (const autreId of Object.keys(conversations)) {
       conversations[autreId].nonLus = await Message.count({
-        where: {
-          expediteurId:   parseInt(autreId),
-          destinataireId: userId,
-          lu:             false,
-        },
+        where: autreId === "public"
+          ? { expediteurId: null, destinataireId: userId, lu: false }
+          : {
+              expediteurId:   parseInt(autreId),
+              destinataireId: userId,
+              lu:             false,
+            },
       });
     }
 

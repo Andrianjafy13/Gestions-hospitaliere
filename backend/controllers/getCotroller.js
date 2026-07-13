@@ -12,29 +12,61 @@ import SuiviPatient from "../models/suiviPatient.js";
 import ProduitExpire from "../models/ProduitExpire.js";
 
 
+// export const getListePatients = async (req, res) => {
+//   try {
+//     const { medecinId } = req.params;
+
+//     // ✅ Validation medecinId
+//     if (!medecinId || isNaN(parseInt(medecinId))) {
+//       return res.status(400).json({ message: "medecinId invalide." });
+//     }
+
+//     const listePatients = await Patients.findAll({
+//       where: { medecinId },
+//       order: [["createdAt", "DESC"]],
+//       include: [
+//         {
+//           model: Chambre,
+//           as: "chambre",
+//           attributes: ["id", "numero", "capacite"], 
+//           required: false,                       
+//         },
+//         {
+//           model: User,
+//           as: "medecin",
+//           attributes: ["id", "nom", "prenom"],  
+//         },
+//       ],
+//     });
+
+//     return res.status(200).json(listePatients);
+
+//   } catch (error) {
+//     console.error("Erreur récupération patients:", error);
+//     return res.status(500).json({
+//       message: "Erreur serveur.",
+//       detail:  error.message,
+//     });
+//   }
+// };
+
 export const getListePatients = async (req, res) => {
   try {
-    const { medecinId } = req.params;
-
-    // ✅ Validation medecinId
-    if (!medecinId || isNaN(parseInt(medecinId))) {
-      return res.status(400).json({ message: "medecinId invalide." });
-    }
-
+    // ✅ Plus besoin de medecinId : tous les médecins voient tous les patients
     const listePatients = await Patients.findAll({
-      where: { medecinId },
       order: [["createdAt", "DESC"]],
       include: [
         {
           model: Chambre,
           as: "chambre",
-          attributes: ["id", "numero", "capacite"], 
-          required: false,                       
+          attributes: ["id", "numero", "capacite"],
+          required: false,
         },
         {
           model: User,
           as: "medecin",
-          attributes: ["id", "nom", "prenom"],  
+          attributes: ["id", "nom", "prenom"], // nom du médecin qui a admis le patient
+          required: false,
         },
       ],
     });
@@ -45,7 +77,7 @@ export const getListePatients = async (req, res) => {
     console.error("Erreur récupération patients:", error);
     return res.status(500).json({
       message: "Erreur serveur.",
-      detail:  error.message,
+      detail: error.message,
     });
   }
 };
@@ -1161,7 +1193,7 @@ export const getCommandesRecentes = async (req, res) => {
 export const getUsersByRole = async (req, res) => {
   try {
     const users = await User.findAll({
-      attributes: ["id", "prenom", "nom"],
+      attributes: ["id", "prenom", "nom", "email", "role", "specialite"],
       order: [["prenom", "ASC"]],
     });
 

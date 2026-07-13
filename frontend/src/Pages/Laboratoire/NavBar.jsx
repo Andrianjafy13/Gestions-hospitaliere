@@ -13,9 +13,10 @@ import {
   UserRoundPen
 } from "lucide-react";
 
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import hospitalIcon from "../../assets/icons.png";
-import { logout } from "../../utils/auth";
+import { useLanguage } from "../../i18n/LanguageContext";
+import { LanguageSelector } from "../../i18n/LanguageSelector";
 
 export default function NavBarLabo() {
   return (
@@ -31,7 +32,7 @@ export default function NavBarLabo() {
 ========================= */
 
 function Sidebar() {
-  const navigate = useNavigate();
+  const { t } = useLanguage();
 
   return (
     <aside className="hidden lg:flex w-64 flex-col bg-blue-900 text-gray-200 fixed inset-y-0 left-0 shadow-lg">
@@ -41,13 +42,13 @@ function Sidebar() {
         <div className="w-8 h-8 bg-teal-500 rounded-xl flex items-center justify-center flex-shrink-0">
         <img
                 src={hospitalIcon}
-                alt="Hospital Icon"
+                alt={t("app.hospitalAlt")}
                 className=" mt-3 w-8 h-8 mb-4"
             />
         </div>
         <div>
           <span className="font-bold text-white text-sm">HospitalMada</span>
-          <p className="text-xs text-gray-300 -mt-0.5">Espace Laboratoire</p>
+          <p className="text-xs text-gray-300 -mt-0.5">{t("nav.laboratoryArea")}</p>
         </div>
       </div>
 
@@ -55,43 +56,43 @@ function Sidebar() {
       <nav className="flex-1 px-3 py-2 overflow-y-auto space-y-1 mt-4">
 
         <Link to="/medecin">
-          <MenuItem icon={<LayoutDashboard size={18} />} label="Dashboard" />
+          <MenuItem icon={<LayoutDashboard size={18} />} label={t("common.dashboard")} />
         </Link>
 
         <Link to="/medecin/rendezvous">
-          <MenuItem icon={<ClipboardList size={18} />} label="Rendez-vous" />
+          <MenuItem icon={<ClipboardList size={18} />} label={t("nav.rendezvous")} />
         </Link>
 
         <Link to="/medecin/agenda">
-          <MenuItem icon={<CalendarDays size={18} />} label="Agenda" />
+          <MenuItem icon={<CalendarDays size={18} />} label={t("nav.agenda")} />
         </Link>
 
         <Link to="/medecin/consultation">
-          <MenuItem icon={<Stethoscope size={18} />} label="Consultations" />
+          <MenuItem icon={<Stethoscope size={18} />} label={t("nav.consultations")} />
         </Link>
 
         <Link to="/medecin/patients">
-          <MenuItem icon={<Users size={18} />} label="Patients" />
+          <MenuItem icon={<Users size={18} />} label={t("nav.patients")} />
         </Link>
 
         <Link to="/medecin/dossiers">
-          <MenuItem icon={<BookOpenCheck size={18} />} label="Dossiers médicaux" />
+          <MenuItem icon={<BookOpenCheck size={18} />} label={t("nav.files")} />
         </Link>
 
         <Link to="/medecin/hospitalisation">
-          <MenuItem icon={<BedDouble size={18} />} label="Hospitalisation" />
+          <MenuItem icon={<BedDouble size={18} />} label={t("nav.hospitalization")} />
         </Link>
 
         <Link to="/medecin/statistiques">
-          <MenuItem icon={<BarChart3 size={18} />} label="Statistiques" />
+          <MenuItem icon={<BarChart3 size={18} />} label={t("common.statistics")} />
         </Link>
 
         <Link to="/medecin/settings">
-          <MenuItem icon={<Settings size={18} />} label="Paramètres" />
+          <MenuItem icon={<Settings size={18} />} label={t("common.settings")} />
         </Link>
 
         <Link to="/">
-          <MenuItem icon={<Share size={18} />} label="Déconnexion" />
+          <MenuItem icon={<Share size={18} />} label={t("common.logout")} />
         </Link>
 
       </nav>
@@ -104,18 +105,21 @@ function Sidebar() {
 ========================= */
 
 function Topbar() {
+  const { t } = useLanguage();
   return (
     <header className="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-slate-100 h-16 flex items-center justify-between px-6 ml-64 shadow-sm">
 
       <h1 className="text-lg font-semibold text-gray-700">
-        Tableau de bord Laboratoire
+        {t("topbar.laboratoryDashboard")}
       </h1>
 
       <div className="flex items-center gap-4">
 
         <span className="text-sm text-gray-600">
-          Laboratoire
+          {t("nav.laboratory")}
         </span>
+
+        <LanguageSelector />
 
         <div className="w-9 h-9 rounded-full bg-teal-500 text-white flex items-center justify-center">
           <UserRoundPen size={18} />
@@ -151,13 +155,14 @@ function MenuItem({ icon, label, active }) {
 ========================= */
 
 export function QuickActions() {
+  const { t } = useLanguage();
 
   const actions = [
-    "Nouveau patient",
-    "Nouvelle consultation",
-    "Planifier rendez-vous",
-    "Créer dossier médical",
-    "Prescrire examen"
+    t("nav.newPatient"),
+    t("nav.newConsultation"),
+    t("nav.planAppointment"),
+    t("nav.createMedicalFile"),
+    t("nav.prescribeExam")
   ];
 
   return (
